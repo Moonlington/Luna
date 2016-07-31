@@ -1,6 +1,8 @@
 # Luna
 A simple bot for Discord.
 
+(For now this is just a placeholder repo, I'm currently working on remaking Luna :smiley:)
+
 ## What does Luna offer?
 * Memes
 * Games (just 1)
