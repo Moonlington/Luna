@@ -124,8 +124,19 @@ async def load(extension_name : str):
 async def unload(extension_name : str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
-    await bot.say("{} unloaded.".format(extension_name))
+    try:
+        bot.load_extension(extension_name)
+    except (AttributeError, ImportError) as e:
+        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        return
+    await bot.say("{} reloaded.".format(extension_name))
 
+
+@bot.command()
+@checks.is_owner()
+async def reload(extension_name : str):
+    bot.unload_extension(extension_name)
+    await bot.say("{} unloaded.".format(extension_name))
 
 @bot.command()
 async def invite():

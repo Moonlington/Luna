@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import functools
-
+import asyncio
+import datetime
 
 def setup(bot):
     bot.add_cog(Music(bot))
@@ -174,7 +175,7 @@ class Music:
             await self.bot.say('You are not in a voice channel.')
             return False
 
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             state.voice = await self.bot.join_voice_channel(summoned_channel)
         else:
@@ -192,7 +193,7 @@ class Music:
         The list of supported sites can be found here:
         https://rg3.github.io/youtube-dl/supportedsites.html
         """
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         opts = {
             "format": 'webm[abr>0]/bestaudio/best',
             "ignoreerrors": True,
@@ -206,7 +207,7 @@ class Music:
             "default_search": "ytsearch",
             "source_address": "0.0.0.0"})
         if state.voice is None:
-            success = await ctx.invoke(summon)
+            success = await ctx.invoke(self.summon)
             if not success:
                 return
         shuffle = True if ' +shuffle' in song else False
@@ -225,7 +226,7 @@ class Music:
             if shuffle:
                 random.shuffle(songlist)
             for video in songlist:
-                entry = VoiceEntry(bot, ctx.message, video)
+                entry = VoiceEntry(self.bot, ctx.message, video)
                 await entry.getInfo()
                 if songlist.index(video) == 0:
                     firstsong = entry
@@ -235,7 +236,7 @@ class Music:
             else:
                 await self.bot.say('Successfully enqueued **{}** entries!'.format(len(songlist)))
         else:
-            entry = VoiceEntry(bot, ctx.message, song)
+            entry = VoiceEntry(self.bot, ctx.message, song)
             await entry.getInfo()
             if not state.is_playing():
                 await self.bot.say('Enqueued and now playing ' + str(entry))
@@ -247,7 +248,7 @@ class Music:
     @music.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value: int):
         """Sets the volume of the currently playing song."""
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
             player.volume = value / 100
@@ -257,7 +258,7 @@ class Music:
     @music.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
         """Pauses the currently played song."""
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
             player.pause()
@@ -266,7 +267,7 @@ class Music:
     @music.command(pass_context=True, no_pm=True)
     async def resume(slef, ctx):
         """Resumes the currently played song."""
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
             player.resume()
@@ -278,7 +279,7 @@ class Music:
         This also clears the queue.
         """
         server = ctx.message.server
-        state = bot.get_voice_state(server)
+        state = self.get_voice_state(server)
 
         if state.is_playing():
             player = state.player
@@ -297,7 +298,7 @@ class Music:
         """Vote to skip a song. The song requester can automatically skip.
         3 skip votes are needed for the song to be skipped.
         """
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if not state.is_playing():
             await self.bot.say('Not playing any music right now...')
             return
@@ -321,7 +322,7 @@ class Music:
     @music.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
         """Shows info about the currently played song."""
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         if state.current is None:
             await self.bot.say('Not playing anything.')
         else:
@@ -336,7 +337,7 @@ class Music:
     @music.command(name='list', pass_context=True, no_pm=True)
     async def _list(self, ctx):
         """Shows the queue for your server."""
-        state = bot.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.message.server)
         entries = [x for x in state.songs._queue]
         if len(entries) == 0:
             await self.bot.say("There are currently no songs in the queue!")
