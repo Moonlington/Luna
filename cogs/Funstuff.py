@@ -527,7 +527,38 @@ class Funstuff:
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
         """Luna's very own tag system, totally didn't rip off Spectra..."""
-
+        def evaluateStatement(statement):
+            index = statement.find('|=|')
+            if index == -1:
+                index = statement.find('|<|')
+            if index == -1:
+                index = statement.find('|>|')
+            if index == -1:
+                index = statement.find('|~|')
+            if index == -1:
+                return False
+            s1 = statement[0:index]
+            s2 = statement[index+3:]
+            try:
+                i1 = float(s1)
+                i2 = float(s2)
+                if statement[index:index+3] == "|=|":
+                    return i1 == i2
+                elif statement[index:index+3] == "|~|":
+                    return i1*100 == i2*100
+                elif statement[index:index+3] == "|>|":
+                    return i1 > i2
+                elif statement[index:index+3] == "|<|":
+                    return i1 < i2
+            except ValueError:
+                if statement[index:index+3] == "|=|":
+                    return i1 == i2
+                elif statement[index:index+3] == "|~|":
+                    return i1.lower() == i2.lower()
+                elif statement[index:index+3] == "|>|":
+                    return i1 > i2
+                elif statement[index:index+3] == "|<|":
+                    return i1 < i2
 
         def lunatagparser(content, args):
             content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args)))
@@ -550,13 +581,24 @@ class Funstuff:
                             toEval = "{" + toEval + "}"
                         else:
                             if not args:
-                                toEval = "{" + toEval + "}"
+                                toEval = ""
                             else:
                                 toEval = next(islice(cycle(args), argget, argget+1))
                     elif toEval.startswith("choose:"):
                         choices = toEval[7:]
                         choices = choices.split('|')
                         toEval = random.choice(choices)
+                    elif toEval.startswith("if:"):
+                        index1 = toEval.find('|then:')
+                        index2 = toEval.find('|else:', index1)
+                        if index1 != -1 and index2 != -1:
+                            statement = toEval[3:index1]
+                            sthen = toEval[index1+6:index2]
+                            selse = toEval[index2+6:]
+                            if evaluateStatement(statement):
+                                toEval = sthen
+                            else:
+                                toEval = selse
                     else:
                         toEval = "{" + toEval + "}"
                     output = output[0:i2] + toEval + output[i1+1:]
@@ -701,6 +743,7 @@ class Funstuff:
                 aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
                 if tagname.lower() == tagnamef.lower():
                     found = True
+                    contentf = contentf.replace('\u2E6E', '\n')
                     await self.bot.say(contentf)
                     break
             if not found:

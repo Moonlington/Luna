@@ -16,7 +16,7 @@ class Botrelated:
     async def load(self, extension_name: str):
         """Loads an extension."""
         try:
-            self.bot.load_extension(extension_name)
+            self.bot.load_extension("cogs." + extension_name)
         except (AttributeError, ImportError) as e:
             await self.bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
             return
@@ -27,9 +27,9 @@ class Botrelated:
     @checks.is_owner()
     async def reload(self, extension_name: str):
         """Reloads an extension."""
-        self.bot.unload_extension(extension_name)
+        self.bot.unload_extension("cogs." + extension_name)
         try:
-            self.bot.load_extension(extension_name)
+            self.bot.load_extension("cogs." + extension_name)
         except (AttributeError, ImportError) as e:
             await self.bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
             return
@@ -40,7 +40,7 @@ class Botrelated:
     @checks.is_owner()
     async def unload(self, extension_name: str):
         """Unloads an extension."""
-        self.bot.unload_extension(extension_name)
+        self.bot.unload_extension("cogs." + extension_name)
         await self.bot.say("{} unloaded.".format(extension_name))
 
 
