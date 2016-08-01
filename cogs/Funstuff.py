@@ -150,7 +150,6 @@ class LsgGame:
         if len(self.players) == 0:
             await self.loseGame()
 
-
     def lsgMessage(self, header, message):
         fmt = "```diff\n!{:=^50}!\n{}\n!{:=^50}!```"
         return fmt.format("[{}]".format(header), message, '')
@@ -168,7 +167,8 @@ class LsgGame:
                     continue
             else:
                 if player.checkStarving():
-                    self.log.append('- WARNING: {} is starving! Next day he/she will die!'.format(player.member.display_name))
+                    self.log.append(
+                        '- WARNING: {} is starving! Next day he/she will die!'.format(player.member.display_name))
             if wantedtoeat > self.getItem('food'):
                 gothungry.append(player)
                 self.changeItem('food', self.getItem('food'))
@@ -179,13 +179,16 @@ class LsgGame:
         else:
             if gothungry:
                 foodeaten = startingfood
-            self.log.append('! Your group ate {} food ({} left)'.format(foodeaten, self.getItem('food')))
+            self.log.append('! Your group ate {} food ({} left)'.format(
+                foodeaten, self.getItem('food')))
             if gothungry:
-                self.log.append("- {} got hungry cause there was not enough food!".format(" and ".join([p.member.display_name for p in gothungry])))
+                self.log.append("- {} got hungry cause there was not enough food!".format(
+                    " and ".join([p.member.display_name for p in gothungry])))
         self.temperature -= 2.0 * self.coldnessmod
         if self.temperature <= -5.0:
-            damage = -3 * (int(self.temperature)+5)
-            self.log.append('- You all begin to freeze... (- {} health to all)'.format(damage))
+            damage = -3 * (int(self.temperature) + 5)
+            self.log.append(
+                '- You all begin to freeze... (- {} health to all)'.format(damage))
             for player in self.players:
                 player.changeHealth(-damage)
         if self.temperature <= 0:
@@ -202,8 +205,10 @@ class LsgGame:
             if player.health <= 0:
                 await self.playerDeath(player)
         random.shuffle(self.players)
-        fmtlog = self.lsgMessage('Day {} log, Radio: {}'.format(self.day, str(self.radiostat) + '%'), "\n".join(self.log) + '\n! Next queue: ' + ' -> '.join([p.member.display_name for p in self.players]))
-        fmtlog += self.lsgMessage('Stats', "\n".join([str(p) for p in self.players if p not in self.deletelist]) + '\nTemp: {}° C'.format(round(self.temperature, 1)))
+        fmtlog = self.lsgMessage('Day {} log, Radio: {}'.format(self.day, str(self.radiostat) + '%'), "\n".join(
+            self.log) + '\n! Next queue: ' + ' -> '.join([p.member.display_name for p in self.players]))
+        fmtlog += self.lsgMessage('Stats', "\n".join(
+            [str(p) for p in self.players if p not in self.deletelist]) + '\nTemp: {}° C'.format(round(self.temperature, 1)))
         await self.sayToAll(fmtlog)
         if self.radiostat >= 100:
             await self.winGame()
@@ -267,7 +272,8 @@ You send a DM to luna with the content '&1'. It's that simple"""))
             for player in self.players:
                 self.waitingfor = player
                 if self.chooselog:
-                    chosen = "\nOthers have chosen:\n" + "\n".join(self.chooselog)
+                    chosen = "\nOthers have chosen:\n" + \
+                        "\n".join(self.chooselog)
                 else:
                     chosen = ''
                 await self.pm(player, self.lsgMessage('Day {}'.format(self.day), """You can choose from a few choices:
@@ -284,8 +290,10 @@ You send a DM to luna with the content '&1'. It's that simple"""))
                 choice = await self.client.wait_for_message(timeout=60, author=player.member, check=lambda m: m.channel.is_private and m.content in choices)
                 if choice is None:
                     await self.pm(player, '```You did nothing```')
-                    self.log.append('! {} didn\'t do anything, he might be AFK'.format(player.member.display_name))
-                    self.chooselog.append('+ {} has chosen nothing'.format(player.member.display_name))
+                    self.log.append('! {} didn\'t do anything, he might be AFK'.format(
+                        player.member.display_name))
+                    self.chooselog.append(
+                        '+ {} has chosen nothing'.format(player.member.display_name))
                     continue
 
                 if choice.content == '&1':
@@ -293,35 +301,44 @@ You send a DM to luna with the content '&1'. It's that simple"""))
                     if chance <= 15:
                         damage = random.randint(30, 50)
                         player.changeHealth(-damage)
-                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no food (-{} Health)'.format(player.member.display_name, damage))
-                    elif chance <= 15+25:
-                        self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
+                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no food (-{} Health)'.format(
+                            player.member.display_name, damage))
+                    elif chance <= 15 + 25:
+                        self.log.append(
+                            '- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
                     else:
                         amountfound = random.randint(2, 5)
                         self.changeItem('food', amountfound)
-                        self.log.append('+ {} gathered some food. (+{} food)'.format(player.member.display_name, amountfound))
-                    self.chooselog.append('+ {} has chosen to gather food.'.format(player.member.display_name))
+                        self.log.append(
+                            '+ {} gathered some food. (+{} food)'.format(player.member.display_name, amountfound))
+                    self.chooselog.append(
+                        '+ {} has chosen to gather food.'.format(player.member.display_name))
                     await self.pm(player, '```You\'ve chosen to gather some food...```')
 
                 elif choice.content == '&1+gun':
                     chance = random.randint(1, 100)
                     if chance <= 3:
                         player.changeHealth(-90)
-                        self.log.append('- {} was shooting an animal when he/she accidentaly shot himself, he/she is SERIOUSLY injured (-90 Health)'.format(player.member.display_name))
-                    elif chance <= 3+15:
+                        self.log.append(
+                            '- {} was shooting an animal when he/she accidentaly shot himself, he/she is SERIOUSLY injured (-90 Health)'.format(player.member.display_name))
+                    elif chance <= 3 + 15:
                         damage = random.randint(15, 25)
                         amountfood = random.randint(4, 6)
                         self.changeItem('food', amountfood)
                         player.changeHealth(-damage)
-                        self.log.append('+ {} got bitten by some wolves while he/she was gathering but he/she shot them down and got food from them (-{} Health, +{} food)'.format(player.member.display_name, damage, amountfood))
-                    elif chance <= 3+15+15:
-                        self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
+                        self.log.append('+ {} got bitten by some wolves while he/she was gathering but he/she shot them down and got food from them (-{} Health, +{} food)'.format(
+                            player.member.display_name, damage, amountfood))
+                    elif chance <= 3 + 15 + 15:
+                        self.log.append(
+                            '- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
                     else:
                         amountfound = random.randint(1, 4)
                         amountfound += random.randint(1, 3)
                         self.changeItem('food', amountfound)
-                        self.log.append('+ {} gathered some food with the gun. (+{} food)'.format(player.member.display_name, amountfound))
-                    self.chooselog.append('+ {} has chosen to gather food with the gun.'.format(player.member.display_name))
+                        self.log.append('+ {} gathered some food with the gun. (+{} food)'.format(
+                            player.member.display_name, amountfound))
+                    self.chooselog.append(
+                        '+ {} has chosen to gather food with the gun.'.format(player.member.display_name))
                     self.gunUsed = True
                     await self.pm(player, '```You\'ve chosen to gather some food with the gun...```')
 
@@ -330,18 +347,22 @@ You send a DM to luna with the content '&1'. It's that simple"""))
                     if chance <= 15:
                         damage = random.randint(30, 50)
                         player.changeHealth(-damage)
-                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no wood (-{} Health)'.format(player.member.display_name, damage))
-                    elif chance <= 15+25:
+                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no wood (-{} Health)'.format(
+                            player.member.display_name, damage))
+                    elif chance <= 15 + 25:
                         damage = random.randint(5, 15)
                         player.changeHealth(-damage)
                         amountwood = random.randint(1, 3)
                         self.changeItem('wood', amountwood)
-                        self.log.append('- {} got splinters in his fingers while gathering wood. (+{} wood, -{} health)'.format(player.member.display_name, amountwood, damage))
+                        self.log.append('- {} got splinters in his fingers while gathering wood. (+{} wood, -{} health)'.format(
+                            player.member.display_name, amountwood, damage))
                     else:
                         amountwood = random.randint(1, 3)
                         self.changeItem('wood', amountwood)
-                        self.log.append('+ {} gathered some wood. (+ {} wood)'.format(player.member.display_name, amountwood))
-                    self.chooselog.append('+ {} has chosen to gather wood.'.format(player.member.display_name))
+                        self.log.append(
+                            '+ {} gathered some wood. (+ {} wood)'.format(player.member.display_name, amountwood))
+                    self.chooselog.append(
+                        '+ {} has chosen to gather wood.'.format(player.member.display_name))
                     await self.pm(player, '```You\'ve chosen to gather some wood...```')
 
                 elif choice.content == '&3':
@@ -352,13 +373,16 @@ You send a DM to luna with the content '&1'. It's that simple"""))
                         tempgot = random.randint(2.0, 4.0)
                         self.changeItem('wood', -2)
                         self.temperature += tempgot
-                        self.log.append('- {} burned himself while lighting the fire (-{} Health, -2 wood, +{} temp)'.format(player.member.display_name, damage, tempgot))
+                        self.log.append('- {} burned himself while lighting the fire (-{} Health, -2 wood, +{} temp)'.format(
+                            player.member.display_name, damage, tempgot))
                     else:
                         tempgot = random.randint(2.0, 4.0)
                         self.temperature += tempgot
                         self.changeItem('wood', -2)
-                        self.log.append('+ {} lighted the fire. (- 2 wood, +{} temp)'.format(player.member.display_name, tempgot))
-                    self.chooselog.append('+ {} has chosen to light the fire.'.format(player.member.display_name))
+                        self.log.append(
+                            '+ {} lighted the fire. (- 2 wood, +{} temp)'.format(player.member.display_name, tempgot))
+                    self.chooselog.append(
+                        '+ {} has chosen to light the fire.'.format(player.member.display_name))
                     await self.pm(player, '```You\'ve chosen to light the fire...```')
 
                 elif choice.content == '&4':
@@ -366,38 +390,48 @@ You send a DM to luna with the content '&1'. It's that simple"""))
                     if chance <= 10:
                         amountrepaired = random.randint(1, 3)
                         self.radiostat -= amountrepaired
-                        self.log.append('- {} tried to repair the radio, but failed horribly. (- {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
+                        self.log.append('- {} tried to repair the radio, but failed horribly. (- {} repaired)'.format(
+                            player.member.display_name, str(amountrepaired) + '%'))
                     else:
                         amountrepaired = random.randint(1, 3)
                         self.radiostat += amountrepaired
-                        self.log.append('+ {} repaired the radio a little. (+ {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
-                    self.chooselog.append('+ {} has chosen to repair the radio.'.format(player.member.display_name))
+                        self.log.append('+ {} repaired the radio a little. (+ {} repaired)'.format(
+                            player.member.display_name, str(amountrepaired) + '%'))
+                    self.chooselog.append(
+                        '+ {} has chosen to repair the radio.'.format(player.member.display_name))
                     await self.pm(player, '```You\'ve chosen to repair the radio...```')
 
                 elif choice.content == '&5':
                     chance = random.randint(1, 100)
                     if chance <= 20:
-                        self.log.append('- {} had nightmares while sleeping, he didn\'t sleep well...'.format(player.member.display_name))
+                        self.log.append(
+                            '- {} had nightmares while sleeping, he didn\'t sleep well...'.format(player.member.display_name))
                     else:
                         amounthealed = random.randint(10, 25)
                         player.changeHealth(amounthealed)
-                        self.log.append('+ {} slept and healed up a bit (+ {} health)'.format(player.member.display_name, amounthealed))
-                    self.chooselog.append('+ {} decided to sleep this day'.format(player.member.display_name))
+                        self.log.append('+ {} slept and healed up a bit (+ {} health)'.format(
+                            player.member.display_name, amounthealed))
+                    self.chooselog.append(
+                        '+ {} decided to sleep this day'.format(player.member.display_name))
                     await self.pm(player, '```You\'ve chosen to sleep today...```')
 
                 elif choice.content == '&suicide':
                     await self.pm(player, '```You\'ve chosen to commit suicide...```')
                     self.kyslist.append(player)
-                    self.chooselog.append('- {} decided to commit suicide'.format(player.member.display_name))
+                    self.chooselog.append(
+                        '- {} decided to commit suicide'.format(player.member.display_name))
             else:
                 await self.passDay()
 
 currentgames = []
 
+
 def setup(bot):
     bot.add_cog(Funstuff(bot))
 
+
 class Funstuff:
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -443,7 +477,6 @@ class Funstuff:
             elif len(containmembers) == 0:
                 return searcheverywhere(search)
 
-
     def searcheverywhere(self, search):
         exactmembers = []
         casemembers = []
@@ -486,17 +519,16 @@ class Funstuff:
             elif len(containmembers) == 0:
                 return None
 
-
     def lookupid(self, _id):
         user = discord.utils.get(self.bot.get_all_members(), id=_id)
         return user
-
 
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
         """Luna's very own tag system, totally didn't rip off Spectra..."""
         def lunatagparser(content):
-            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name)
+            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace(
+                "{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name)
             return content
         if tagcalled is None:
             await self.bot.say("Use `&help tag` for the subcommands.")
@@ -512,7 +544,6 @@ class Funstuff:
             if not found:
                 await self.bot.say('That is not a known tag, use `&help tag` for more information')
 
-
     @tag.command(name='create', pass_context=True)
     async def _create(self, ctx, tagname: str, *, content: str):
         content = content.replace('\n', '\u2E6E')
@@ -526,14 +557,14 @@ class Funstuff:
                     break
             if not found:
                 with open('discord.tags', 'ab') as file:
-                    file.write('{}\u2E6F{}\u2E6F{}\n'.format(ctx.message.author.id, tagname, content).encode('utf8'))
+                    file.write('{}\u2E6F{}\u2E6F{}\n'.format(
+                        ctx.message.author.id, tagname, content).encode('utf8'))
                     await self.bot.say("Successfully created tag **{}**".format(tagname))
-
 
     @tag.command(name='delete', pass_context=True, aliases=['remove'])
     async def _delete(self, ctx, tagname: str):
         def deletetag(name):
-            f = open("discord.tags","rb+")
+            f = open("discord.tags", "rb+")
             d = f.readlines()
             f.seek(0)
             for i in d:
@@ -542,7 +573,6 @@ class Funstuff:
                     f.write(i)
             f.truncate()
             f.close()
-
 
         with open('discord.tags', 'rb+') as file:
             found = False
@@ -562,11 +592,11 @@ class Funstuff:
             if not found:
                 await self.bot.say("That tag doesn't exist!")
 
-
     @tag.command(name='list', pass_context=True)
     async def _taglist(self, ctx, *, name: str=None):
         with open('discord.tags', 'rb+') as file:
-            person = ctx.message.author if name is None else self.searchuserlist(name, ctx.message)
+            person = ctx.message.author if name is None else self.searchuserlist(
+                name, ctx.message)
             personid = person.id
             lines = file.readlines()
             file.seek(0)
@@ -577,22 +607,21 @@ class Funstuff:
                     taglist.append(tagnamef)
             await self.bot.say("__**{}'s** list of {} tag{}:__\n{}".format(person.name, len(taglist), '' if len(taglist) == 1 else 's', " ".join(taglist)))
 
-
     @tag.command(name='edit', pass_context=True)
     async def _edit(self, ctx, tagname: str, *, edittedcontent: str):
         def edittag(name, content):
-            f = open("discord.tags","rb+")
+            f = open("discord.tags", "rb+")
             d = f.readlines()
             f.seek(0)
             for i in d:
                 aid, tagnamef, contentf = i.decode('utf8').split('\u2E6F')
                 if name.lower() == tagnamef.lower():
-                    f.write('{}\u2E6F{}\u2E6F{}\n'.format(aid, tagnamef, content).encode('utf8'))
+                    f.write('{}\u2E6F{}\u2E6F{}\n'.format(
+                        aid, tagnamef, content).encode('utf8'))
                 else:
                     f.write(i)
             f.truncate()
             f.close()
-
 
         with open('discord.tags', 'rb+') as file:
             found = False
@@ -612,45 +641,41 @@ class Funstuff:
             if not found:
                 await self.bot.say("That tag doesn't exist!")
 
-
     @tag.command(name='owner', pass_context=True)
     async def _owner(self, ctx, tagname: str):
         with open('discord.tags', 'rb+') as file:
-                found = False
-                lines = file.readlines()
-                file.seek(0)
-                for line in lines:
-                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
-                    if tagname.lower() == tagnamef.lower():
-                        found = True
-                        owneruser = self.lookupid(aid).name
-                        await self.bot.say("Tag **{}** is owned by **{}**".format(tagnamef, owneruser))
-                        break
-                if not found:
-                    await self.bot.say("That tag doesn't exist!")
-
+            found = False
+            lines = file.readlines()
+            file.seek(0)
+            for line in lines:
+                aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                if tagname.lower() == tagnamef.lower():
+                    found = True
+                    owneruser = self.lookupid(aid).name
+                    await self.bot.say("Tag **{}** is owned by **{}**".format(tagnamef, owneruser))
+                    break
+            if not found:
+                await self.bot.say("That tag doesn't exist!")
 
     @tag.command(name='raw', pass_context=True)
     async def _raw(self, ctx, tagname: str):
         with open('discord.tags', 'rb+') as file:
-                found = False
-                lines = file.readlines()
-                file.seek(0)
-                for line in lines:
-                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
-                    if tagname.lower() == tagnamef.lower():
-                        found = True
-                        await self.bot.say(contentf)
-                        break
-                if not found:
-                    await self.bot.say("That tag doesn't exist!")
-
+            found = False
+            lines = file.readlines()
+            file.seek(0)
+            for line in lines:
+                aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                if tagname.lower() == tagnamef.lower():
+                    found = True
+                    await self.bot.say(contentf)
+                    break
+            if not found:
+                await self.bot.say("That tag doesn't exist!")
 
     @commands.command()
     async def hello(self):
         """Checks if I am alive."""
         await self.bot.say('Hi, I am alive!')
-
 
     @commands.command()
     async def lenny(self, eye=None, eye2=None):
@@ -662,7 +687,6 @@ class Funstuff:
         else:
             await self.bot.say('( ͡' + eye + ' ͜ʖ ͡' + eye2 + ')')
 
-
     @commands.command()
     async def lennys(self, eye=None, eye2=None):
         """Same as lenny, but 2 lennys."""
@@ -672,7 +696,6 @@ class Funstuff:
             await self.bot.say('( ͡ ' + eye + ' ͜ʖ ͡  ' + eye + ')  ( ͡ ' + eye + '  ͜ʖ ͡ ' + eye + '  )')
         else:
             await self.bot.say('( ͡  ' + eye + ' ͜ʖ ͡  ' + eye2 + ')  ( ͡ ' + eye2 + '  ͜ʖ ͡ ' + eye + '  )')
-
 
     @commands.command(pass_context=True)
     async def glomp(self, ctx, *, who_to_glomp=None):
@@ -688,13 +711,11 @@ class Funstuff:
         else:
             await self.bot.say('*{} glomps {}*'.format(client.user.name, ctx.message.author.name))
 
-
     @commands.command()
     async def reverse(self, *, to_reverse: str):
         """It reverses text."""
         text = to_reverse
         await self.bot.say(str(text)[::-1])
-
 
     @commands.command()
     async def respect(self):
@@ -707,8 +728,7 @@ class Funstuff:
         f.write(str(respects))
         f.close()
         await self.bot.say('Thank you!\n'
-                         '**Total \"respects\" given:** ' + str(respects))
-
+                           '**Total \"respects\" given:** ' + str(respects))
 
     @commands.command()
     async def execute(self, *, to_execute: str):
@@ -722,7 +742,8 @@ class Funstuff:
             bottomtextsize = font.getsize(whotoexecute)
             while bottomtextsize[0] > imagesize[0] - 20:
                 fontsize -= 1
-                font = ImageFont.truetype("/Library/Fonts/Pixelette.ttf", fontsize)
+                font = ImageFont.truetype(
+                    "/Library/Fonts/Pixelette.ttf", fontsize)
                 bottomtextsize = font.getsize(whotoexecute)
 
             bottomtextpositionx = (imagesize[0] / 2) - (bottomtextsize[0] / 2)
@@ -730,7 +751,8 @@ class Funstuff:
             bottomtextposition = (bottomtextpositionx, bottomtextpositiony)
 
             draw = ImageDraw.Draw(img)
-            draw.text(bottomtextposition, whotoexecute, (255, 255, 255), font=font)
+            draw.text(bottomtextposition, whotoexecute,
+                      (255, 255, 255), font=font)
 
             img.save("rip.png")
 
@@ -738,7 +760,6 @@ class Funstuff:
         make_execution(meme)
         await self.bot.type()
         await self.bot.upload('rip.png')
-
 
     @commands.command(pass_context=True)
     async def rquote(self, ctx):
@@ -766,7 +787,6 @@ class Funstuff:
         fquote = quote.replace('[name]', user.name)
         await self.bot.say(fquote)
 
-
     @commands.group(pass_context=True)
     async def lsg(self, ctx):
         """Luna's very fun survival team-ish game-ish thing"""
@@ -774,6 +794,7 @@ class Funstuff:
             await self.bot.say('Use `&help lsg` to see the subcommands.')
 
     initiating = {}
+
     @lsg.command(name='start', pass_context=True)
     async def _start(self, ctx):
         """Initiates a LSG game"""
@@ -829,7 +850,6 @@ class Funstuff:
                     initiating = False
                     await asyncio.sleep(5)
                     await game.startgame()
-
 
     @lsg.command(name='test', pass_context=True)
     async def _test(self, ctx):
@@ -887,7 +907,6 @@ class Funstuff:
                     await asyncio.sleep(5)
                     await game.startgame()
 
-
     @lsg.command(name='waitingfor', pass_context=True)
     async def _waitingfor(self, ctx):
         """Lets you know what dude is being an asshole/is slow as fuck."""
@@ -902,7 +921,6 @@ class Funstuff:
         if not found:
             await self.bot.say('You are not in a game.')
 
-
     @commands.command()
     async def roll(self, dice: str):
         """Rolls a dice in NdN format."""
@@ -915,12 +933,10 @@ class Funstuff:
         result = ', '.join(str(random.randint(1, limit)) for _ in range(rolls))
         await self.bot.say(result)
 
-
     @commands.command()
     async def choose(self, *choices: str):
         """Chooses between multiple choices."""
         await self.bot.say(random.choice(choices))
-
 
     @commands.command()
     async def translate(self, language, *, text):
@@ -934,7 +950,8 @@ class Funstuff:
             yee = True
         try:
             if yee:
-                translated = TextBlob(text).translate(from_lang=lang1, to=lang2)
+                translated = TextBlob(text).translate(
+                    from_lang=lang1, to=lang2)
             else:
                 translated = TextBlob(text).translate(to=lang2)
         except textblob.exceptions.NotTranslated:
@@ -946,7 +963,6 @@ class Funstuff:
         """A command which creates a call-line between channels, works cross-server"""
         if ctx.invoked_subcommand is None:
             await self.bot.say('Check `&help call` for the subcommands')
-
 
     @call.command(name='join', pass_context=True)
     async def _join(self, ctx, *, call_line: str):
@@ -961,11 +977,11 @@ class Funstuff:
         else:
             findcall = call_lines.get(call_line)
             if findcall is None:
-                call_lines[call_line] = CallLine(self.bot, ctx.message, call_line)
+                call_lines[call_line] = CallLine(
+                    self.bot, ctx.message, call_line)
                 await self.bot.say("Connected to call-line `{}`".format(call_line))
             else:
                 await findcall.addChannel(ctx.message.channel)
-
 
     @call.command(name='disconnect', pass_context=True)
     async def _disc(self, ctx, *, call_line: str):
@@ -976,7 +992,6 @@ class Funstuff:
             await self.bot.say("There is no call-line called `{}`".format(call_line))
         else:
             await findcall.removeChannel(ctx.message.channel)
-
 
     @call.command(name='list')
     async def _calllist(self):
@@ -997,7 +1012,7 @@ class Funstuff:
         x = sorted([m.joined_at for m in sm])
         y = range(len(x))
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
-        plt.plot(x,y)
+        plt.plot(x, y)
         plt.gcf().autofmt_xdate()
         plt.title("Plot of joins from {}".format(ctx.message.server.name))
         buf = BytesIO()

@@ -1,8 +1,10 @@
 from discord.ext import commands
 import discord
 from cogs.utils import checks
-import datetime, re
-import json, asyncio
+import datetime
+import re
+import json
+import asyncio
 import copy
 import logging
 import traceback
@@ -41,7 +43,8 @@ async def on_command_error(error, ctx):
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
         traceback.print_tb(error.original.__traceback__)
-        print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+        print('{0.__class__.__name__}: {0}'.format(
+            error.original), file=sys.stderr)
 
 
 @bot.event
@@ -73,7 +76,8 @@ async def on_ready():
             else:
                 to_dl = 'x86'
             r = requests.get(
-                "https://github.com/SexualRhinoceros/MusicBot/raw/develop/libopus-0.{}.dll".format(to_dl),
+                "https://github.com/SexualRhinoceros/MusicBot/raw/develop/libopus-0.{}.dll".format(
+                    to_dl),
                 stream=True)
             with open("libopus.dll", 'wb') as f:
                 for chunk in r.iter_content(256):
@@ -99,7 +103,8 @@ async def on_command(command, ctx):
     else:
         destination = '#{0.channel.name} ({0.server.name})'.format(message)
 
-    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
+    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
+        message, destination))
 
 
 def load_credentials():
@@ -109,7 +114,7 @@ def load_credentials():
 
 @bot.command()
 @checks.is_owner()
-async def load(extension_name : str):
+async def load(extension_name: str):
     """Loads an extension."""
     try:
         bot.load_extension(extension_name)
@@ -121,7 +126,7 @@ async def load(extension_name : str):
 
 @bot.command()
 @checks.is_owner()
-async def reload(extension_name : str):
+async def reload(extension_name: str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
     try:
@@ -134,9 +139,10 @@ async def reload(extension_name : str):
 
 @bot.command()
 @checks.is_owner()
-async def unload(extension_name : str):
+async def unload(extension_name: str):
     bot.unload_extension(extension_name)
     await bot.say("{} unloaded.".format(extension_name))
+
 
 @bot.command()
 async def invite():
@@ -178,7 +184,8 @@ def PrintException():
     filename = f.f_code.co_filename
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
-    print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+    print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(
+        filename, lineno, line.strip(), exc_obj))
 
 
 if __name__ == '__main__':
@@ -195,4 +202,3 @@ if __name__ == '__main__':
     for hdlr in handlers:
         hdlr.close()
         log.removeHandler(hdlr)
-        

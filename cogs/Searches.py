@@ -6,10 +6,13 @@ import textwrap
 import urllib.request as request
 from bs4 import BeautifulSoup as bs
 
+
 def setup(bot):
     bot.add_cog(Searches(bot))
 
+
 class Searches:
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -31,7 +34,6 @@ class Searches:
         except IndexError:
             await self.bot.say('**Error:** Definition not found')
 
-
     @commands.command(name='google', pass_context=True)
     async def _google(ctx, *, googlesearch):
         """Googles stuff"""
@@ -40,7 +42,6 @@ class Searches:
         url = google.search(query)
         await self.bot.say(
             '{}, you searched for: **{}**\nThis is the result: {}'.format(ctx.message.author.mention, query, next(url)))
-
 
     @commands.command(pass_context=True, aliases=['yt'])
     async def youtube(ctx, *, ytsearch: str):
@@ -62,7 +63,6 @@ class Searches:
         except IndexError:
             await self.bot.say('Sorry I could not find any results containing the name `{}`'.format(errorthing))
 
-
     @commands.command()
     async def fanficton(*, fanfucksearch: str):
         """Searches the shittiest and weirdest fanfics on fanfiction.net"""
@@ -79,7 +79,8 @@ class Searches:
             '"(/s/.*?)"', str(soup.find_all('a', attrs={'href': re.compile('/s/*')})))
         try:
             x = len(alexpls)
-            newurl = 'https://www.fanfiction.net' + alexpls[random.randrange(x)]
+            newurl = 'https://www.fanfiction.net' + \
+                alexpls[random.randrange(x)]
             ourUrl = opener.open(newurl).read()
             soup = bs(ourUrl, "html.parser")
             alexpls2 = re.findall('<p>(.*?)</p>', str(soup.find_all('p')))
@@ -98,4 +99,3 @@ class Searches:
             await self.bot.say('Url: {}'.format(newurl))
         except ValueError:
             await self.bot.say("Sorry, but no fanfucks were found with the name: **{}**".format(errorthing))
-            

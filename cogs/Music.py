@@ -5,6 +5,7 @@ import functools
 import asyncio
 import datetime
 
+
 def setup(bot):
     bot.add_cog(Music(bot))
 
@@ -19,11 +20,11 @@ class VoiceEntry:
 
     async def getInfo(self):
         opts = {
-        "format": 'webm[abr>0]/bestaudio/best',
-        "ignoreerrors": True,
-        "default_search": "auto",
-        "source_address": "0.0.0.0",
-        'quiet': True}
+            "format": 'webm[abr>0]/bestaudio/best',
+            "ignoreerrors": True,
+            "default_search": "auto",
+            "source_address": "0.0.0.0",
+            'quiet': True}
         ydl = youtube_dl.YoutubeDL(opts)
         func = functools.partial(ydl.extract_info, self.url, download=False)
         info = await self.bot.loop.run_in_executor(None, func)
@@ -58,7 +59,8 @@ class VoiceEntry:
     def __str__(self):
         fmt = '**{0.title}** uploaded by **{0.uploader}** and requested by **{1.display_name}**'
         if self.duration:
-            fmt += ' `[length: {0[0]}m {0[1]}s]`'.format(divmod(self.duration, 60))
+            fmt += ' `[length: {0[0]}m {0[1]}s]`'.format(
+                divmod(self.duration, 60))
         return fmt.format(self, self.requester)
 
     def __repr__(self):
@@ -99,7 +101,8 @@ class VoiceState:
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
     def create_player(self, entry):
-        player = self.voice.create_ffmpeg_player(entry.download_url, after=self.toggle_next)
+        player = self.voice.create_ffmpeg_player(
+            entry.download_url, after=self.toggle_next)
         player.volume = 0.55
         return player
 
@@ -153,7 +156,6 @@ class Music:
         if ctx.invoked_subcommand is None:
             await self.bot.say('Use `&help music` or `&help lm` to see the subcommands.')
 
-
     @music.command(no_pm=True)
     async def join(self, *, channel: discord.Channel):
         """Joins a voice channel."""
@@ -165,7 +167,6 @@ class Music:
             await self.bot.say('Already in a voice channel...')
         else:
             await self.bot.say('Ready to play audio in ' + channel.name)
-
 
     @music.command(pass_context=True, no_pm=True)
     async def summon(self, ctx):
@@ -182,7 +183,6 @@ class Music:
             await state.voice.move_to(summoned_channel)
 
         return True
-
 
     @music.command(pass_context=True, no_pm=True)
     async def play(self, ctx, *, song: str):
@@ -220,7 +220,8 @@ class Music:
             for e in info['entries']:
                 if e:
                     if 'youtube' in info['extractor']:
-                        songlist.append('https://www.youtube.com/watch?v={}'.format(e['id']))
+                        songlist.append(
+                            'https://www.youtube.com/watch?v={}'.format(e['id']))
             firstsong = None
             weeee = True if not state.is_playing() else False
             if shuffle:
@@ -244,7 +245,6 @@ class Music:
                 await self.bot.say('Enqueued ' + str(entry))
             await state.songs.put(entry)
 
-
     @music.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value: int):
         """Sets the volume of the currently playing song."""
@@ -254,7 +254,6 @@ class Music:
             player.volume = value / 100
             await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
 
-
     @music.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
         """Pauses the currently played song."""
@@ -263,7 +262,6 @@ class Music:
             player = state.player
             player.pause()
 
-
     @music.command(pass_context=True, no_pm=True)
     async def resume(slef, ctx):
         """Resumes the currently played song."""
@@ -271,7 +269,6 @@ class Music:
         if state.is_playing():
             player = state.player
             player.resume()
-
 
     @music.command(pass_context=True, no_pm=True)
     async def stop(self, ctx):
@@ -291,7 +288,6 @@ class Music:
             await state.voice.disconnect()
         except:
             pass
-
 
     @music.command(pass_context=True, no_pm=True)
     async def skip(self, ctx):
@@ -318,7 +314,6 @@ class Music:
         else:
             await self.bot.say('You have already voted to skip this song.')
 
-
     @music.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
         """Shows info about the currently played song."""
@@ -332,7 +327,6 @@ class Music:
             duration = (t2 - t1).total_seconds()
             await self.bot.say(
                 'Now playing {0} [skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.player.duration, 60)))
-
 
     @music.command(name='list', pass_context=True, no_pm=True)
     async def _list(self, ctx):
@@ -358,4 +352,3 @@ class Music:
             send += 'Total duration: `[{0}]`'.format(
                 datetime.timedelta(seconds=totalduration))
             await self.bot.say(send)
-            
