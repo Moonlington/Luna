@@ -143,7 +143,7 @@ async def invite():
     """Sends an invite link for you to invite me to your personal server."""
     await bot.say(
         'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
-        'https://discordapp.com/oauth2/authorize?&bot_id={}}&scope=bot&permissions=-1\n'.format(bot.bot_id))
+        'https://discordapp.com/oauth2/authorize?&bot_id={}&scope=bot&permissions=-1\n'.format(bot.bot_id))
 
 
 @bot.command()
