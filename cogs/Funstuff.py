@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import os
+import random
 
 if not os.path.exists('discord.tags'):
     open('discord.tags', 'w').close()
@@ -560,7 +561,7 @@ class Funstuff:
     @tag.command(name='list', pass_context=True)
     async def _taglist(self, ctx, *, name: str=None):
         with open('discord.tags', 'rb+') as file:
-            person = ctx.message.author if name is None else searchuserlist(name, ctx.message)
+            person = ctx.message.author if name is None else self.searchuserlist(name, ctx.message)
             personid = person.id
             lines = file.readlines()
             file.seek(0)
@@ -640,7 +641,7 @@ class Funstuff:
         """For that moment that you really want to glomp someone."""
         if who_to_glomp is not None:
             toglomp = who_to_glomp
-            toglomp = searchuserlist(toglomp, ctx.message)
+            toglomp = self.searchuserlist(toglomp, ctx.message)
             if toglomp is not None:
                 await self.bot.say('*{} glomps {}*'.format(ctx.message.author.name, toglomp.name))
             else:
