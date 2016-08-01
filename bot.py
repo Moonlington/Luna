@@ -105,6 +105,7 @@ def load_credentials():
 
 
 @bot.command()
+@checks.is_owner
 async def load(extension_name : str):
     """Loads an extension."""
     try:
@@ -116,10 +117,19 @@ async def load(extension_name : str):
 
 
 @bot.command()
+@checks.is_owner
 async def unload(extension_name : str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
 	await bot.say("{} unloaded.".format(extension_name))
+
+
+@bot.command()
+async def invite():
+    """Sends an invite link for you to invite me to your personal server."""
+    await bot.say(
+        'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
+        'https://discordapp.com/oauth2/authorize?&client_id=170405995049254913&scope=bot&permissions=-1\n')
 
 
 if __name__ == '__main__':
