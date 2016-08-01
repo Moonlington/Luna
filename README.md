@@ -1,4 +1,8 @@
-# Luna
+<p style="text-align:center;">
+<img src="http://i.imgur.com/UBmdzKZ.png"></p>
+
+---
+
 A simple bot for Discord.
 
 ## What does Luna offer?
