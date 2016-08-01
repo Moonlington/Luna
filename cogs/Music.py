@@ -4,7 +4,7 @@ import youtube_dl
 import functools
 import asyncio
 import datetime
-
+import math
 
 def setup(bot):
     bot.add_cog(Music(bot))
