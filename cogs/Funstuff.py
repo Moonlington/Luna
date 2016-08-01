@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import os
 import random
+from itertools import islice, cycle
 
 if not os.path.exists('discord.tags'):
     open('discord.tags', 'w').close()
@@ -526,19 +527,51 @@ class Funstuff:
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
         """Luna's very own tag system, totally didn't rip off Spectra..."""
-        def lunatagparser(content):
-            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace(
-                "{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name)
-            return content
+
+
+        def lunatagparser(content, args):
+            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args)))
+            output = content
+            toEval = ""
+            iterations = 0
+            lastoutput = ""
+            while lastoutput != output and iterations < 200:
+                lastoutput = output
+                iterations += 1
+                i1 = output.find("}")
+                i2 = -1 if i1 == -1 else output.rfind("{", 0, i1)
+                if i1 != -1 and i2 != -1:
+                    toEval = output[i2+1:i1]
+                    if toEval.startswith('length:'):
+                        toEval = str(len(toEval[7:]))
+                    elif toEval.startswith('arg:'):
+                        argget = int(toEval[4:]) if toEval[4:].isdigit() else False
+                        if argget is False:
+                            toEval = "{" + toEval + "}"
+                        else:
+                            if not args:
+                                toEval = "{" + toEval + "}"
+                            else:
+                                toEval = next(islice(cycle(args), argget, argget+1))
+                    elif toEval.startswith("choose:"):
+                        choices = toEval[7:]
+                        choices = choices.split('|')
+                        toEval = random.choice(choices)
+                    else:
+                        toEval = "{" + toEval + "}"
+                    output = output[0:i2] + toEval + output[i1+1:]
+            return output
+
+
         if tagcalled is None:
             await self.bot.say("Use `&help tag` for the subcommands.")
         with open('discord.tags', 'rb+') as file:
             found = False
             for line in file:
-                aid, tagname, content = line.decode('utf8').split('\u2E6F')
+                aid, tagname, content = line.decode('utf8').split('\u2E6F'  )
                 if tagcalled.lower() == tagname.lower():
                     content = content.replace('\u2E6E', '\n')
-                    await self.bot.say(lunatagparser(content))
+                    await self.bot.say(lunatagparser(content, args))
                     found = True
                     break
             if not found:
@@ -546,7 +579,6 @@ class Funstuff:
 
     @tag.command(name='create', pass_context=True)
     async def _create(self, ctx, tagname: str, *, content: str):
-        content = content.replace('\n', '\u2E6E')
         with open('discord.tags', 'rb+') as file:
             found = False
             for line in file:
@@ -557,6 +589,7 @@ class Funstuff:
                     break
             if not found:
                 with open('discord.tags', 'ab') as file:
+                    content = content.replace('\n', '\u2E6E')
                     file.write('{}\u2E6F{}\u2E6F{}\n'.format(
                         ctx.message.author.id, tagname, content).encode('utf8'))
                     await self.bot.say("Successfully created tag **{}**".format(tagname))
@@ -616,6 +649,7 @@ class Funstuff:
             for i in d:
                 aid, tagnamef, contentf = i.decode('utf8').split('\u2E6F')
                 if name.lower() == tagnamef.lower():
+                    content = content.replace('\n', '\u2E6E')
                     f.write('{}\u2E6F{}\u2E6F{}\n'.format(
                         aid, tagnamef, content).encode('utf8'))
                 else:
