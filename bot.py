@@ -132,6 +132,31 @@ async def invite():
         'https://discordapp.com/oauth2/authorize?&client_id=170405995049254913&scope=bot&permissions=-1\n')
 
 
+@bot.command()
+async def botabout():
+    """I'll tell a little about myself."""
+    uptime = datetime.datetime.now() - starttime
+    ucounter = 0
+    for _ in bot.get_all_members():
+        ucounter += 1
+    ccounter = 0
+    for _ in bot.get_all_channels():
+        ccounter += 1
+    scounter = 0
+    for _ in bot.servers:
+        scounter += 1
+    fmt = '''**About me**
+Name: {0.name} (ID: {0.id})
+Author: Moon Moon (ID: 139386544275324928)
+Language: Snek language (python)\n
+**Statistics**
+Uptime: {1}
+Visible Servers: {2}
+Visible Channels: {3}
+Visible Users: {4}'''
+    await bot.say(fmt.format(bot.user, uptime, scounter, ccounter, ucounter))
+
+
 if __name__ == '__main__':
 	credentials = load_credentials()
     bot.client_id = credentials['client_id']

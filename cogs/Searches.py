@@ -10,7 +10,6 @@ def setup(bot):
     bot.add_cog(Searches(bot))
 
 class Searches:
-
     def __init__(self, bot)
         self.bot = bot
 

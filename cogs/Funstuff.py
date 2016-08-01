@@ -1,5 +1,9 @@
 import discord
 from discord.ext import commands
+import os
+
+if not os.path.exists('discord.tags'):
+    open('discord.tags', 'w').close()
 
 def searchuserlist(search, message):
     exactmembers = []
@@ -49,7 +53,7 @@ def searcheverywhere(search):
     casemembers = []
     startsmembers = []
     containmembers = []
-    allusers = client.get_all_members()
+    allusers = self.bot.get_all_members()
     for member in allusers:
         membercheck = member
         if search == str(membercheck):
@@ -478,7 +482,7 @@ def setup(bot):
     bot.add_cog(Funstuff(bot))
 
 class Funstuff:
-    def __init__(self, bot)
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
@@ -697,7 +701,7 @@ class Funstuff:
 
 
     @commands.command(pass_context=True)
-    @commands.check(if_toggled)
+
     async def rquote(self, ctx):
         """From a list of random quotes, it says one."""
         quotes = [
@@ -724,13 +728,13 @@ class Funstuff:
         await self.bot.say(fquote)
 
 
-    @client.group(pass_context=True)
+    @commands.group(pass_context=True)
     async def lsg(self, ctx):
         """Luna's very fun survival team-ish game-ish thing"""
         if ctx.invoked_subcommand is None:
             await self.bot.say('Use `&help lsg` to see the subcommands.')
 
-    initiating = {s.name: False for s in client.servers}
+    initiating = {s.name: False for s in self.bot.servers}
 
 
     @lsg.command(name='start', pass_context=True)
@@ -779,10 +783,10 @@ class Funstuff:
                 else:
                     userlist = []
                     for m in playerlist:
-                        player = LsgPlayer(client, m)
+                        player = LsgPlayer(self.bot, m)
                         userlist.append(player)
                     else:
-                        game = LsgGame(client, userlist, ctx.message.channel)
+                        game = LsgGame(self.bot, userlist, ctx.message.channel)
                         currentgames.append(game)
                     await self.bot.say("Created the game! Game should start in 5 seconds...")
                     initiating = False
@@ -836,10 +840,10 @@ class Funstuff:
                 else:
                     userlist = []
                     for m in playerlist:
-                        player = LsgPlayer(client, m)
+                        player = LsgPlayer(self.bot, m)
                         userlist.append(player)
                     else:
-                        game = LsgGame(client, userlist, ctx.message.channel)
+                        game = LsgGame(self.bot, userlist, ctx.message.channel)
                         currentgames.append(game)
                     await self.bot.say("Created the game! Game should start in 5 seconds...")
                     initiating[ctx.message.server.id] = False
@@ -863,7 +867,6 @@ class Funstuff:
 
 
     @commands.command()
-    @commands.check(if_toggled)
     async def roll(self, dice: str):
         """Rolls a dice in NdN format."""
         try:
@@ -877,14 +880,12 @@ class Funstuff:
 
 
     @commands.command()
-    @commands.check(if_toggled)
     async def choose(self, *choices: str):
         """Chooses between multiple choices."""
         await self.bot.say(random.choice(choices))
 
 
     @commands.command()
-    @commands.check(if_toggled)
     async def translate(self, language, *, text):
         """Translates text
         Usage: fromlang>tolang <text>
@@ -903,7 +904,7 @@ class Funstuff:
             translated = text
         await self.bot.say(translated)
 
-    @client.group(pass_context=True)
+    @commands.group(pass_context=True)
     async def call(self, ctx):
         """A command which creates a call-line between channels, works cross-server"""
         if ctx.invoked_subcommand is None:
@@ -923,7 +924,7 @@ class Funstuff:
         else:
             findcall = call_lines.get(call_line)
             if findcall is None:
-                call_lines[call_line] = CallLine(client, ctx.message, call_line)
+                call_lines[call_line] = CallLine(self.bot, ctx.message, call_line)
                 await self.bot.say("Connected to call-line `{}`".format(call_line))
             else:
                 await findcall.addChannel(ctx.message.channel)
@@ -935,7 +936,7 @@ class Funstuff:
         call_line = call_line.lower()
         findcall = call_lines.get(call_line)
         if findcall is None:
-            client.say("There is no call-line called `{}`".format(call_line))
+            await self.bot.say("There is no call-line called `{}`".format(call_line))
         else:
             await findcall.removeChannel(ctx.message.channel)
 
