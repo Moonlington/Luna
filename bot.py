@@ -17,7 +17,8 @@ initial_extensions = [
     'cogs.Funstuff',
     'cogs.Members',
     'cogs.Music',
-    'cogs.Searches'
+    'cogs.Searches',
+    'cogs.Botrelated'
 ]
 
 botdesc = '''Luna is a simple bot made by Floretta for fun ¯\_(ツ)_/¯'''
@@ -110,72 +111,6 @@ async def on_command(command, ctx):
 def load_credentials():
     with open('credentials.json') as f:
         return json.load(f)
-
-
-@bot.command()
-@checks.is_owner()
-async def load(extension_name: str):
-    """Loads an extension."""
-    try:
-        bot.load_extension(extension_name)
-    except (AttributeError, ImportError) as e:
-        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-        return
-    await bot.say("{} loaded.".format(extension_name))
-
-
-@bot.command()
-@checks.is_owner()
-async def reload(extension_name: str):
-    """Unloads an extension."""
-    bot.unload_extension(extension_name)
-    try:
-        bot.load_extension(extension_name)
-    except (AttributeError, ImportError) as e:
-        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-        return
-    await bot.say("{} reloaded.".format(extension_name))
-
-
-@bot.command()
-@checks.is_owner()
-async def unload(extension_name: str):
-    bot.unload_extension(extension_name)
-    await bot.say("{} unloaded.".format(extension_name))
-
-
-@bot.command()
-async def invite():
-    """Sends an invite link for you to invite me to your personal server."""
-    await bot.say(
-        'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
-        'https://discordapp.com/oauth2/authorize?&bot_id={}&scope=bot&permissions=-1\n'.format(bot.bot_id))
-
-
-@bot.command()
-async def botabout():
-    """I'll tell a little about myself."""
-    uptime = datetime.datetime.now() - starttime
-    ucounter = 0
-    for _ in bot.get_all_members():
-        ucounter += 1
-    ccounter = 0
-    for _ in bot.get_all_channels():
-        ccounter += 1
-    scounter = 0
-    for _ in bot.servers:
-        scounter += 1
-    fmt = '''**About me**
-Name: {0.name} (ID: {0.id})
-Author: Moon Moon (ID: 139386544275324928)
-Language: Snek language (python)\n
-**Statistics**
-Uptime: {1}
-Visible Servers: {2}
-Visible Channels: {3}
-Visible Users: {4}'''
-    await bot.say(fmt.format(bot.user, uptime, scounter, ccounter, ucounter))
-
 
 def PrintException():
     exc_type, exc_obj, tb = sys.exc_info()
