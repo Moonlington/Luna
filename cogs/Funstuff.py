@@ -487,6 +487,11 @@ class Funstuff:
                 return None
 
 
+    def lookupid(self, _id):
+        user = discord.utils.get(self.bot.get_all_members(), id=_id)
+        return user
+
+
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
         """Luna's very own tag system, totally didn't rip off Spectra..."""
@@ -606,6 +611,39 @@ class Funstuff:
                         break
             if not found:
                 await self.bot.say("That tag doesn't exist!")
+
+
+    @tag.command(name='owner', pass_context=True)
+    async def _owner(self, ctx, tagname: str):
+        with open('discord.tags', 'rb+') as file:
+                found = False
+                lines = file.readlines()
+                file.seek(0)
+                for line in lines:
+                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    if tagname.lower() == tagnamef.lower():
+                        found = True
+                        owneruser = self.lookupid(aid).name
+                        await self.bot.say("Tag **{}** is owned by **{}**".format(tagnamef, owneruser))
+                        break
+                if not found:
+                    await self.bot.say("That tag doesn't exist!")
+
+
+    @tag.command(name='raw', pass_context=True)
+    async def _raw(self, ctx, tagname: str):
+        with open('discord.tags', 'rb+') as file:
+                found = False
+                lines = file.readlines()
+                file.seek(0)
+                for line in lines:
+                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    if tagname.lower() == tagnamef.lower():
+                        found = True
+                        await self.bot.say(contentf)
+                        break
+                if not found:
+                    await self.bot.say("That tag doesn't exist!")
 
 
     @commands.command()

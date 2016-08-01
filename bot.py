@@ -121,7 +121,7 @@ async def load(extension_name : str):
 
 @bot.command()
 @checks.is_owner()
-async def unload(extension_name : str):
+async def reload(extension_name : str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
     try:
@@ -134,7 +134,7 @@ async def unload(extension_name : str):
 
 @bot.command()
 @checks.is_owner()
-async def reload(extension_name : str):
+async def unload(extension_name : str):
     bot.unload_extension(extension_name)
     await bot.say("{} unloaded.".format(extension_name))
 
