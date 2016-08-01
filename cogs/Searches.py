@@ -10,10 +10,10 @@ def setup(bot):
     bot.add_cog(Searches(bot))
 
 class Searches:
-    def __init__(self, bot)
+    def __init__(self, bot):
         self.bot = bot
 
-    @comands.command()
+    @commands.command()
     async def define(*, to_define: str):
         """Using Urban Dictionary, define stuff."""
         yee = to_define
@@ -98,3 +98,4 @@ class Searches:
             await self.bot.say('Url: {}'.format(newurl))
         except ValueError:
             await self.bot.say("Sorry, but no fanfucks were found with the name: **{}**".format(errorthing))
+            

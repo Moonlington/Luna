@@ -5,91 +5,6 @@ import os
 if not os.path.exists('discord.tags'):
     open('discord.tags', 'w').close()
 
-def searchuserlist(search, message):
-    exactmembers = []
-    casemembers = []
-    startsmembers = []
-    containmembers = []
-    allusers = message.server.members
-    for member in allusers:
-        membercheck = member
-        if search == str(membercheck):
-            exactmembers.append(membercheck)
-        elif search.lower() == str(membercheck).lower():
-            casemembers.append(membercheck)
-        elif str(membercheck).lower().startswith(search):
-            startsmembers.append(membercheck)
-        elif search.lower() in str(membercheck).lower():
-            containmembers.append(membercheck)
-        else:
-            continue
-    else:
-        exactmembers = list(set(exactmembers))
-        casemembers = list(set(casemembers))
-        startsmembers = list(set(startsmembers))
-        containmembers = list(set(containmembers))
-        if len(exactmembers) == 1:
-            return exactmembers[0]
-        elif len(casemembers) == 1:
-            return casemembers[0]
-        elif len(startsmembers) == 1:
-            return startsmembers[0]
-        elif len(containmembers) == 1:
-            return containmembers[0]
-        elif len(exactmembers) > 1:
-            return exactmembers[0]
-        elif len(casemembers) > 1:
-            return casemembers[0]
-        elif len(startsmembers) > 1:
-            return startsmembers[0]
-        elif len(containmembers) > 1:
-            return containmembers[0]
-        elif len(containmembers) == 0:
-            return searcheverywhere(search)
-
-
-def searcheverywhere(search):
-    exactmembers = []
-    casemembers = []
-    startsmembers = []
-    containmembers = []
-    allusers = self.bot.get_all_members()
-    for member in allusers:
-        membercheck = member
-        if search == str(membercheck):
-            exactmembers.append(membercheck)
-        elif search.lower() == str(membercheck).lower():
-            casemembers.append(membercheck)
-        elif str(membercheck).lower().startswith(search):
-            startsmembers.append(membercheck)
-        elif search.lower() in str(membercheck).lower():
-            containmembers.append(membercheck)
-        else:
-            continue
-    else:
-        exactmembers = list(set(exactmembers))
-        casemembers = list(set(casemembers))
-        startsmembers = list(set(startsmembers))
-        containmembers = list(set(containmembers))
-        if len(exactmembers) == 1:
-            return exactmembers[0]
-        elif len(casemembers) == 1:
-            return casemembers[0]
-        elif len(startsmembers) == 1:
-            return startsmembers[0]
-        elif len(containmembers) == 1:
-            return containmembers[0]
-        elif len(exactmembers) > 1:
-            return exactmembers[0]
-        elif len(casemembers) > 1:
-            return startsmembers[0]
-        elif len(startsmembers) > 1:
-            return containmembers[0]
-        elif len(containmembers) > 1:
-            return containmembers[0]
-        elif len(containmembers) == 0:
-            return None
-
 
 class CallLine:
 
@@ -145,336 +60,336 @@ class CallLine:
                     continue
 
 
-    class LsgPlayer:
+class LsgPlayer:
 
-        def __init__(self, client, member):
-            self.client = client
-            self.member = member
+    def __init__(self, client, member):
+        self.client = client
+        self.member = member
+        self.health = 100
+        self.hunger = 0
+        self.starving = False
+        # self.morale = 100
+        self.equippeditem = None
+
+    def __str__(self):
+        fmt = "+ {0.display_name} - Health: {1}, Hunger: {2}"
+        return fmt.format(self.member, self.health, self.hunger)
+
+    def changeHealth(self, amount):
+        self.health += amount
+        if self.health > 100:
             self.health = 100
+
+    def changeHunger(self, amount):
+        self.hunger += amount
+        if self.hunger < 0:
             self.hunger = 0
+
+    def checkStarving(self, death=False):
+        if self.hunger >= 6:
+            self.starving = True
+            return True
+
+        else:
             self.starving = False
-            # self.morale = 100
-            self.equippeditem = None
+            return False
 
-        def __str__(self):
-            fmt = "+ {0.display_name} - Health: {1}, Hunger: {2}"
-            return fmt.format(self.member, self.health, self.hunger)
-
-        def changeHealth(self, amount):
-            self.health += amount
-            if self.health > 100:
-                self.health = 100
-
-        def changeHunger(self, amount):
-            self.hunger += amount
-            if self.hunger < 0:
-                self.hunger = 0
-
-        def checkStarving(self, death=False):
-            if self.hunger >= 6:
-                self.starving = True
-                return True
-
-            else:
-                self.starving = False
-                return False
-
-        def setEquipped(self, item):
-            self.equippeditem = item
+    def setEquipped(self, item):
+        self.equippeditem = item
 
 
-    class LsgGame:
+class LsgGame:
 
-        def __init__(self, client, players, channel):
-            self.client = client
-            self.channel = channel
-            self.players = players
-            self.teaminventory = [('food', 15), ('wood', 5)]
-            self.gametask = None
-            self.playing = False
-            self.day = 1
-            self.radiostat = 0
-            self.temperature = 12.0
-            self.gunUsed = False
-            self.coldnessmod = 1.0
-            self.deletelist = []
-            self.waitingfor = None
-            self.kyslist = []
-            self.log = []
-            self.chooselog = []
+    def __init__(self, client, players, channel):
+        self.client = client
+        self.channel = channel
+        self.players = players
+        self.teaminventory = [('food', 15), ('wood', 5)]
+        self.gametask = None
+        self.playing = False
+        self.day = 1
+        self.radiostat = 0
+        self.temperature = 12.0
+        self.gunUsed = False
+        self.coldnessmod = 1.0
+        self.deletelist = []
+        self.waitingfor = None
+        self.kyslist = []
+        self.log = []
+        self.chooselog = []
 
-        def returnMembers(self):
-            return [p.member for p in self.players]
+    def returnMembers(self):
+        return [p.member for p in self.players]
 
-        def changeItem(self, item, amount):
-            found = False
-            for i, titem in enumerate(self.teaminventory):
-                if item == titem[0]:
-                    newamount = titem[1] + amount
-                    if newamount <= 0:
-                        self.teaminventory.remove(titem)
-                    else:
-                        self.teaminventory.insert(i, (titem[0], newamount))
-                        self.teaminventory.remove(titem)
-                    found = True
-            if not found:
-                self.teaminventory.append((item, amount))
-
-        def getItem(self, itemname):
-            for titem in self.teaminventory:
-                if titem[0] == itemname:
-                    return titem[1]
-            else:
-                return 0
-
-        async def playerDeath(self, player, message='- {} died'):
-            await self.pm(player, "```diff\nYou died! The rest will have to go on without you.```")
-            self.log.append(message.format(player.member.display_name))
-            self.deletelist.append(player)
-            if len(self.players) == 0:
-                await self.loseGame()
-
-
-        def lsgMessage(self, header, message):
-            fmt = "```diff\n!{:=^50}!\n{}\n!{:=^50}!```"
-            return fmt.format("[{}]".format(header), message, '')
-
-        async def passDay(self):
-            foodeaten = 0
-            gothungry = []
-            for player in self.players:
-                wantedtoeat = random.randint(1, 3)
-                foodeaten += wantedtoeat
-                startingfood = self.getItem('food')
-                if player.starving:
-                    if player.checkStarving():
-                        await self.playerDeath(player, message='- {} died of starvation')
-                        continue
+    def changeItem(self, item, amount):
+        found = False
+        for i, titem in enumerate(self.teaminventory):
+            if item == titem[0]:
+                newamount = titem[1] + amount
+                if newamount <= 0:
+                    self.teaminventory.remove(titem)
                 else:
-                    if player.checkStarving():
-                        self.log.append('- WARNING: {} is starving! Next day he/she will die!'.format(player.member.display_name))
-                if wantedtoeat > self.getItem('food'):
-                    gothungry.append(player)
-                    self.changeItem('food', self.getItem('food'))
-                    player.changeHunger(wantedtoeat)
-                else:
-                    player.changeHunger(-wantedtoeat * 2)
-                    self.changeItem('food', -wantedtoeat)
+                    self.teaminventory.insert(i, (titem[0], newamount))
+                    self.teaminventory.remove(titem)
+                found = True
+        if not found:
+            self.teaminventory.append((item, amount))
+
+    def getItem(self, itemname):
+        for titem in self.teaminventory:
+            if titem[0] == itemname:
+                return titem[1]
+        else:
+            return 0
+
+    async def playerDeath(self, player, message='- {} died'):
+        await self.pm(player, "```diff\nYou died! The rest will have to go on without you.```")
+        self.log.append(message.format(player.member.display_name))
+        self.deletelist.append(player)
+        if len(self.players) == 0:
+            await self.loseGame()
+
+
+    def lsgMessage(self, header, message):
+        fmt = "```diff\n!{:=^50}!\n{}\n!{:=^50}!```"
+        return fmt.format("[{}]".format(header), message, '')
+
+    async def passDay(self):
+        foodeaten = 0
+        gothungry = []
+        for player in self.players:
+            wantedtoeat = random.randint(1, 3)
+            foodeaten += wantedtoeat
+            startingfood = self.getItem('food')
+            if player.starving:
+                if player.checkStarving():
+                    await self.playerDeath(player, message='- {} died of starvation')
+                    continue
             else:
-                if gothungry:
-                    foodeaten = startingfood
-                self.log.append('! Your group ate {} food ({} left)'.format(foodeaten, self.getItem('food')))
-                if gothungry:
-                    self.log.append("- {} got hungry cause there was not enough food!".format(" and ".join([p.member.display_name for p in gothungry])))
-            self.temperature -= 2.0 * self.coldnessmod
-            if self.temperature <= -5.0:
-                damage = -3 * (int(self.temperature)+5)
-                self.log.append('- You all begin to freeze... (- {} health to all)'.format(damage))
-                for player in self.players:
-                    player.changeHealth(-damage)
-            if self.temperature <= 0:
-                self.log.append('- You all begin to get cold...')
-                self.coldnessmod += 0.1
-            if self.kyslist:
-                tasks = [
-                    asyncio.ensure_future(
-                        self.playerDeath(
-                            player,
-                            message='- {} committed suicide...')) for player in self.kyslist]
-                await asyncio.wait(tasks)
+                if player.checkStarving():
+                    self.log.append('- WARNING: {} is starving! Next day he/she will die!'.format(player.member.display_name))
+            if wantedtoeat > self.getItem('food'):
+                gothungry.append(player)
+                self.changeItem('food', self.getItem('food'))
+                player.changeHunger(wantedtoeat)
+            else:
+                player.changeHunger(-wantedtoeat * 2)
+                self.changeItem('food', -wantedtoeat)
+        else:
+            if gothungry:
+                foodeaten = startingfood
+            self.log.append('! Your group ate {} food ({} left)'.format(foodeaten, self.getItem('food')))
+            if gothungry:
+                self.log.append("- {} got hungry cause there was not enough food!".format(" and ".join([p.member.display_name for p in gothungry])))
+        self.temperature -= 2.0 * self.coldnessmod
+        if self.temperature <= -5.0:
+            damage = -3 * (int(self.temperature)+5)
+            self.log.append('- You all begin to freeze... (- {} health to all)'.format(damage))
             for player in self.players:
-                if player.health <= 0:
-                    await self.playerDeath(player)
-            random.shuffle(self.players)
-            fmtlog = self.lsgMessage('Day {} log, Radio: {}'.format(self.day, str(self.radiostat) + '%'), "\n".join(self.log) + '\n! Next queue: ' + ' -> '.join([p.member.display_name for p in self.players]))
-            fmtlog += self.lsgMessage('Stats', "\n".join([str(p) for p in self.players if p not in self.deletelist]) + '\nTemp: {}° C'.format(round(self.temperature, 1)))
-            await self.sayToAll(fmtlog)
-            if self.radiostat >= 100:
-                await self.winGame()
-            if self.deletelist:
-                for player in self.deletelist:
-                    self.players.remove(player)
-            self.day += 1
-            self.log = []
-            self.deletelist = []
-            self.kyslist = []
-            self.chooselog = []
-            self.gunUsed = False
-            # save_pkl(currentgames, 'currentgames')
-
-        async def winGame(self):
-            await self.say(self.lsgMessage("You won!", """After successfully repairing the radio you hear a noise coming from it.
-    This strange noise becomes a voice and it's clearly asking who this is.
-    You and the others call for help, the one coming from the radio says: 'We... will... send... help...'
-    You and the others cheer in happiness as you see the ship landing in front of you.
-    The end.
-
-    THANKS FOR PLAYING AND ACTUALLY WINNING!"""))
-            self.playing = False
-
-        async def loseGame(self):
-            await self.say(self.lsgMessage("You lose!", """Everyone's dead.
-    Try better.
-    Git gud
-    (sorry i need a good story for this)"""))
-            self.playing = False
-
-        async def sayToAll(self, message):
+                player.changeHealth(-damage)
+        if self.temperature <= 0:
+            self.log.append('- You all begin to get cold...')
+            self.coldnessmod += 0.1
+        if self.kyslist:
             tasks = [
                 asyncio.ensure_future(
-                    self.client.send_message(
-                        player.member,
-                        message)) for player in self.players]
+                    self.playerDeath(
+                        player,
+                        message='- {} committed suicide...')) for player in self.kyslist]
             await asyncio.wait(tasks)
+        for player in self.players:
+            if player.health <= 0:
+                await self.playerDeath(player)
+        random.shuffle(self.players)
+        fmtlog = self.lsgMessage('Day {} log, Radio: {}'.format(self.day, str(self.radiostat) + '%'), "\n".join(self.log) + '\n! Next queue: ' + ' -> '.join([p.member.display_name for p in self.players]))
+        fmtlog += self.lsgMessage('Stats', "\n".join([str(p) for p in self.players if p not in self.deletelist]) + '\nTemp: {}° C'.format(round(self.temperature, 1)))
+        await self.sayToAll(fmtlog)
+        if self.radiostat >= 100:
+            await self.winGame()
+        if self.deletelist:
+            for player in self.deletelist:
+                self.players.remove(player)
+        self.day += 1
+        self.log = []
+        self.deletelist = []
+        self.kyslist = []
+        self.chooselog = []
+        self.gunUsed = False
+        # save_pkl(currentgames, 'currentgames')
 
-        async def say(self, message):
-            await self.client.send_message(self.channel, message)
+    async def winGame(self):
+        await self.say(self.lsgMessage("You won!", """After successfully repairing the radio you hear a noise coming from it.
+This strange noise becomes a voice and it's clearly asking who this is.
+You and the others call for help, the one coming from the radio says: 'We... will... send... help...'
+You and the others cheer in happiness as you see the ship landing in front of you.
+The end.
 
-        async def pm(self, user, message):
-            await self.client.send_message(user.member, message)
+THANKS FOR PLAYING AND ACTUALLY WINNING!"""))
+        self.playing = False
 
-        async def startgame(self):
-            await self.say(self.lsgMessage("Intro", """You and 3 others have stranded in the middle of a tundra.
-    Together you will gather food and try to survive as long as possible.
-    You can also try to fix your friend's radio, which you can use to call for help.
-    + You have 15 pieces of food and water is plenty.
-    + You also have a hunting rifle, which will help with hunting.
-    HOW TO PLAY:
-    You get a DM from Luna, telling you what you can do at the moment.
-    Lets say you want to choose option 1, gather food.
-    You send a DM to luna with the content '&1'. It's that simple"""))
-            self.playing = True
-            self.gametask = self.client.loop.create_task(self.game_task())
+    async def loseGame(self):
+        await self.say(self.lsgMessage("You lose!", """Everyone's dead.
+Try better.
+Git gud
+(sorry i need a good story for this)"""))
+        self.playing = False
 
-        async def game_task(self):
-            while self.playing:
-                for player in self.players:
-                    self.waitingfor = player
-                    if self.chooselog:
-                        chosen = "\nOthers have chosen:\n" + "\n".join(self.chooselog)
-                    else:
-                        chosen = ''
-                    await self.pm(player, self.lsgMessage('Day {}'.format(self.day), """You can choose from a few choices:
-    &1 Gather for food (+ food) (Gun is {0})
-    &2 Gather for wood (+ wood)
-    &3 Light the fire (+ temp, - 2 wood ({2} left))
-    &4 Try to repair the radio
-    &5 Sleep (+ health)
-    &suicide Commit suicide, pls dont tho. (+ instant death){1}""".format("not used, use '&1+gun' to use the gun" if not self.gunUsed else "used, sorry", chosen, self.getItem('wood'))))
-                    choices = ['&1', '&2', '&3', '&4', '&5', '&suicide']
-                    if not self.gunUsed:
-                        choices.append('&1+gun')
-                    kyslist = []
-                    choice = await self.client.wait_for_message(timeout=60, author=player.member, check=lambda m: m.channel.is_private and m.content in choices)
-                    if choice is None:
-                        await self.pm(player, '```You did nothing```')
-                        self.log.append('! {} didn\'t do anything, he might be AFK'.format(player.member.display_name))
-                        self.chooselog.append('+ {} has chosen nothing'.format(player.member.display_name))
-                        continue
+    async def sayToAll(self, message):
+        tasks = [
+            asyncio.ensure_future(
+                self.client.send_message(
+                    player.member,
+                    message)) for player in self.players]
+        await asyncio.wait(tasks)
 
-                    if choice.content == '&1':
-                        chance = random.randint(1, 100)
-                        if chance <= 15:
-                            damage = random.randint(30, 50)
-                            player.changeHealth(-damage)
-                            self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no food (-{} Health)'.format(player.member.display_name, damage))
-                        elif chance <= 15+25:
-                            self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
-                        else:
-                            amountfound = random.randint(2, 5)
-                            self.changeItem('food', amountfound)
-                            self.log.append('+ {} gathered some food. (+{} food)'.format(player.member.display_name, amountfound))
-                        self.chooselog.append('+ {} has chosen to gather food.'.format(player.member.display_name))
-                        await self.pm(player, '```You\'ve chosen to gather some food...```')
+    async def say(self, message):
+        await self.client.send_message(self.channel, message)
 
-                    elif choice.content == '&1+gun':
-                        chance = random.randint(1, 100)
-                        if chance <= 3:
-                            player.changeHealth(-90)
-                            self.log.append('- {} was shooting an animal when he/she accidentaly shot himself, he/she is SERIOUSLY injured (-90 Health)'.format(player.member.display_name))
-                        elif chance <= 3+15:
-                            damage = random.randint(15, 25)
-                            amountfood = random.randint(4, 6)
-                            self.changeItem('food', amountfood)
-                            player.changeHealth(-damage)
-                            self.log.append('+ {} got bitten by some wolves while he/she was gathering but he/she shot them down and got food from them (-{} Health, +{} food)'.format(player.member.display_name, damage, amountfood))
-                        elif chance <= 3+15+15:
-                            self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
-                        else:
-                            amountfound = random.randint(1, 4)
-                            amountfound += random.randint(1, 3)
-                            self.changeItem('food', amountfound)
-                            self.log.append('+ {} gathered some food with the gun. (+{} food)'.format(player.member.display_name, amountfound))
-                        self.chooselog.append('+ {} has chosen to gather food with the gun.'.format(player.member.display_name))
-                        self.gunUsed = True
-                        await self.pm(player, '```You\'ve chosen to gather some food with the gun...```')
+    async def pm(self, user, message):
+        await self.client.send_message(user.member, message)
 
-                    elif choice.content == '&2':
-                        chance = random.randint(1, 100)
-                        if chance <= 15:
-                            damage = random.randint(30, 50)
-                            player.changeHealth(-damage)
-                            self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no wood (-{} Health)'.format(player.member.display_name, damage))
-                        elif chance <= 15+25:
-                            damage = random.randint(5, 15)
-                            player.changeHealth(-damage)
-                            amountwood = random.randint(1, 3)
-                            self.changeItem('wood', amountwood)
-                            self.log.append('- {} got splinters in his fingers while gathering wood. (+{} wood, -{} health)'.format(player.member.display_name, amountwood, damage))
-                        else:
-                            amountwood = random.randint(1, 3)
-                            self.changeItem('wood', amountwood)
-                            self.log.append('+ {} gathered some wood. (+ {} wood)'.format(player.member.display_name, amountwood))
-                        self.chooselog.append('+ {} has chosen to gather wood.'.format(player.member.display_name))
-                        await self.pm(player, '```You\'ve chosen to gather some wood...```')
+    async def startgame(self):
+        await self.say(self.lsgMessage("Intro", """You and 3 others have stranded in the middle of a tundra.
+Together you will gather food and try to survive as long as possible.
+You can also try to fix your friend's radio, which you can use to call for help.
++ You have 15 pieces of food and water is plenty.
++ You also have a hunting rifle, which will help with hunting.
+HOW TO PLAY:
+You get a DM from Luna, telling you what you can do at the moment.
+Lets say you want to choose option 1, gather food.
+You send a DM to luna with the content '&1'. It's that simple"""))
+        self.playing = True
+        self.gametask = self.client.loop.create_task(self.game_task())
 
-                    elif choice.content == '&3':
-                        chance = random.randint(1, 100)
-                        if chance <= 15:
-                            damage = random.randint(30, 50)
-                            player.changeHealth(-damage)
-                            tempgot = random.randint(2.0, 4.0)
-                            self.changeItem('wood', -2)
-                            self.temperature += tempgot
-                            self.log.append('- {} burned himself while lighting the fire (-{} Health, -2 wood, +{} temp)'.format(player.member.display_name, damage, tempgot))
-                        else:
-                            tempgot = random.randint(2.0, 4.0)
-                            self.temperature += tempgot
-                            self.changeItem('wood', -2)
-                            self.log.append('+ {} lighted the fire. (- 2 wood, +{} temp)'.format(player.member.display_name, tempgot))
-                        self.chooselog.append('+ {} has chosen to light the fire.'.format(player.member.display_name))
-                        await self.pm(player, '```You\'ve chosen to light the fire...```')
-
-                    elif choice.content == '&4':
-                        chance = random.randint(1, 100)
-                        if chance <= 10:
-                            amountrepaired = random.randint(1, 3)
-                            self.radiostat -= amountrepaired
-                            self.log.append('- {} tried to repair the radio, but failed horribly. (- {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
-                        else:
-                            amountrepaired = random.randint(1, 3)
-                            self.radiostat += amountrepaired
-                            self.log.append('+ {} repaired the radio a little. (+ {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
-                        self.chooselog.append('+ {} has chosen to repair the radio.'.format(player.member.display_name))
-                        await self.pm(player, '```You\'ve chosen to repair the radio...```')
-
-                    elif choice.content == '&5':
-                        chance = random.randint(1, 100)
-                        if chance <= 20:
-                            self.log.append('- {} had nightmares while sleeping, he didn\'t sleep well...'.format(player.member.display_name))
-                        else:
-                            amounthealed = random.randint(10, 25)
-                            player.changeHealth(amounthealed)
-                            self.log.append('+ {} slept and healed up a bit (+ {} health)'.format(player.member.display_name, amounthealed))
-                        self.chooselog.append('+ {} decided to sleep this day'.format(player.member.display_name))
-                        await self.pm(player, '```You\'ve chosen to sleep today...```')
-
-                    elif choice.content == '&suicide':
-                        await self.pm(player, '```You\'ve chosen to commit suicide...```')
-                        self.kyslist.append(player)
-                        self.chooselog.append('- {} decided to commit suicide'.format(player.member.display_name))
+    async def game_task(self):
+        while self.playing:
+            for player in self.players:
+                self.waitingfor = player
+                if self.chooselog:
+                    chosen = "\nOthers have chosen:\n" + "\n".join(self.chooselog)
                 else:
-                    await self.passDay()
+                    chosen = ''
+                await self.pm(player, self.lsgMessage('Day {}'.format(self.day), """You can choose from a few choices:
+&1 Gather for food (+ food) (Gun is {0})
+&2 Gather for wood (+ wood)
+&3 Light the fire (+ temp, - 2 wood ({2} left))
+&4 Try to repair the radio
+&5 Sleep (+ health)
+&suicide Commit suicide, pls dont tho. (+ instant death){1}""".format("not used, use '&1+gun' to use the gun" if not self.gunUsed else "used, sorry", chosen, self.getItem('wood'))))
+                choices = ['&1', '&2', '&3', '&4', '&5', '&suicide']
+                if not self.gunUsed:
+                    choices.append('&1+gun')
+                kyslist = []
+                choice = await self.client.wait_for_message(timeout=60, author=player.member, check=lambda m: m.channel.is_private and m.content in choices)
+                if choice is None:
+                    await self.pm(player, '```You did nothing```')
+                    self.log.append('! {} didn\'t do anything, he might be AFK'.format(player.member.display_name))
+                    self.chooselog.append('+ {} has chosen nothing'.format(player.member.display_name))
+                    continue
+
+                if choice.content == '&1':
+                    chance = random.randint(1, 100)
+                    if chance <= 15:
+                        damage = random.randint(30, 50)
+                        player.changeHealth(-damage)
+                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no food (-{} Health)'.format(player.member.display_name, damage))
+                    elif chance <= 15+25:
+                        self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
+                    else:
+                        amountfound = random.randint(2, 5)
+                        self.changeItem('food', amountfound)
+                        self.log.append('+ {} gathered some food. (+{} food)'.format(player.member.display_name, amountfound))
+                    self.chooselog.append('+ {} has chosen to gather food.'.format(player.member.display_name))
+                    await self.pm(player, '```You\'ve chosen to gather some food...```')
+
+                elif choice.content == '&1+gun':
+                    chance = random.randint(1, 100)
+                    if chance <= 3:
+                        player.changeHealth(-90)
+                        self.log.append('- {} was shooting an animal when he/she accidentaly shot himself, he/she is SERIOUSLY injured (-90 Health)'.format(player.member.display_name))
+                    elif chance <= 3+15:
+                        damage = random.randint(15, 25)
+                        amountfood = random.randint(4, 6)
+                        self.changeItem('food', amountfood)
+                        player.changeHealth(-damage)
+                        self.log.append('+ {} got bitten by some wolves while he/she was gathering but he/she shot them down and got food from them (-{} Health, +{} food)'.format(player.member.display_name, damage, amountfood))
+                    elif chance <= 3+15+15:
+                        self.log.append('- {} dropped the food while he/she was coming back.'.format(player.member.display_name))
+                    else:
+                        amountfound = random.randint(1, 4)
+                        amountfound += random.randint(1, 3)
+                        self.changeItem('food', amountfound)
+                        self.log.append('+ {} gathered some food with the gun. (+{} food)'.format(player.member.display_name, amountfound))
+                    self.chooselog.append('+ {} has chosen to gather food with the gun.'.format(player.member.display_name))
+                    self.gunUsed = True
+                    await self.pm(player, '```You\'ve chosen to gather some food with the gun...```')
+
+                elif choice.content == '&2':
+                    chance = random.randint(1, 100)
+                    if chance <= 15:
+                        damage = random.randint(30, 50)
+                        player.changeHealth(-damage)
+                        self.log.append('- {} got bitten by some wolves while he/she was gathering, he/she came back with no wood (-{} Health)'.format(player.member.display_name, damage))
+                    elif chance <= 15+25:
+                        damage = random.randint(5, 15)
+                        player.changeHealth(-damage)
+                        amountwood = random.randint(1, 3)
+                        self.changeItem('wood', amountwood)
+                        self.log.append('- {} got splinters in his fingers while gathering wood. (+{} wood, -{} health)'.format(player.member.display_name, amountwood, damage))
+                    else:
+                        amountwood = random.randint(1, 3)
+                        self.changeItem('wood', amountwood)
+                        self.log.append('+ {} gathered some wood. (+ {} wood)'.format(player.member.display_name, amountwood))
+                    self.chooselog.append('+ {} has chosen to gather wood.'.format(player.member.display_name))
+                    await self.pm(player, '```You\'ve chosen to gather some wood...```')
+
+                elif choice.content == '&3':
+                    chance = random.randint(1, 100)
+                    if chance <= 15:
+                        damage = random.randint(30, 50)
+                        player.changeHealth(-damage)
+                        tempgot = random.randint(2.0, 4.0)
+                        self.changeItem('wood', -2)
+                        self.temperature += tempgot
+                        self.log.append('- {} burned himself while lighting the fire (-{} Health, -2 wood, +{} temp)'.format(player.member.display_name, damage, tempgot))
+                    else:
+                        tempgot = random.randint(2.0, 4.0)
+                        self.temperature += tempgot
+                        self.changeItem('wood', -2)
+                        self.log.append('+ {} lighted the fire. (- 2 wood, +{} temp)'.format(player.member.display_name, tempgot))
+                    self.chooselog.append('+ {} has chosen to light the fire.'.format(player.member.display_name))
+                    await self.pm(player, '```You\'ve chosen to light the fire...```')
+
+                elif choice.content == '&4':
+                    chance = random.randint(1, 100)
+                    if chance <= 10:
+                        amountrepaired = random.randint(1, 3)
+                        self.radiostat -= amountrepaired
+                        self.log.append('- {} tried to repair the radio, but failed horribly. (- {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
+                    else:
+                        amountrepaired = random.randint(1, 3)
+                        self.radiostat += amountrepaired
+                        self.log.append('+ {} repaired the radio a little. (+ {} repaired)'.format(player.member.display_name, str(amountrepaired) + '%'))
+                    self.chooselog.append('+ {} has chosen to repair the radio.'.format(player.member.display_name))
+                    await self.pm(player, '```You\'ve chosen to repair the radio...```')
+
+                elif choice.content == '&5':
+                    chance = random.randint(1, 100)
+                    if chance <= 20:
+                        self.log.append('- {} had nightmares while sleeping, he didn\'t sleep well...'.format(player.member.display_name))
+                    else:
+                        amounthealed = random.randint(10, 25)
+                        player.changeHealth(amounthealed)
+                        self.log.append('+ {} slept and healed up a bit (+ {} health)'.format(player.member.display_name, amounthealed))
+                    self.chooselog.append('+ {} decided to sleep this day'.format(player.member.display_name))
+                    await self.pm(player, '```You\'ve chosen to sleep today...```')
+
+                elif choice.content == '&suicide':
+                    await self.pm(player, '```You\'ve chosen to commit suicide...```')
+                    self.kyslist.append(player)
+                    self.chooselog.append('- {} decided to commit suicide'.format(player.member.display_name))
+            else:
+                await self.passDay()
 
 currentgames = []
 
@@ -484,6 +399,92 @@ def setup(bot):
 class Funstuff:
     def __init__(self, bot):
         self.bot = bot
+
+    def searchuserlist(self, search, message):
+        exactmembers = []
+        casemembers = []
+        startsmembers = []
+        containmembers = []
+        allusers = message.server.members
+        for member in allusers:
+            membercheck = member
+            if search == str(membercheck):
+                exactmembers.append(membercheck)
+            elif search.lower() == str(membercheck).lower():
+                casemembers.append(membercheck)
+            elif str(membercheck).lower().startswith(search):
+                startsmembers.append(membercheck)
+            elif search.lower() in str(membercheck).lower():
+                containmembers.append(membercheck)
+            else:
+                continue
+        else:
+            exactmembers = list(set(exactmembers))
+            casemembers = list(set(casemembers))
+            startsmembers = list(set(startsmembers))
+            containmembers = list(set(containmembers))
+            if len(exactmembers) == 1:
+                return exactmembers[0]
+            elif len(casemembers) == 1:
+                return casemembers[0]
+            elif len(startsmembers) == 1:
+                return startsmembers[0]
+            elif len(containmembers) == 1:
+                return containmembers[0]
+            elif len(exactmembers) > 1:
+                return exactmembers[0]
+            elif len(casemembers) > 1:
+                return casemembers[0]
+            elif len(startsmembers) > 1:
+                return startsmembers[0]
+            elif len(containmembers) > 1:
+                return containmembers[0]
+            elif len(containmembers) == 0:
+                return searcheverywhere(search)
+
+
+    def searcheverywhere(self, search):
+        exactmembers = []
+        casemembers = []
+        startsmembers = []
+        containmembers = []
+        allusers = self.bot.get_all_members()
+        for member in allusers:
+            membercheck = member
+            if search == str(membercheck):
+                exactmembers.append(membercheck)
+            elif search.lower() == str(membercheck).lower():
+                casemembers.append(membercheck)
+            elif str(membercheck).lower().startswith(search):
+                startsmembers.append(membercheck)
+            elif search.lower() in str(membercheck).lower():
+                containmembers.append(membercheck)
+            else:
+                continue
+        else:
+            exactmembers = list(set(exactmembers))
+            casemembers = list(set(casemembers))
+            startsmembers = list(set(startsmembers))
+            containmembers = list(set(containmembers))
+            if len(exactmembers) == 1:
+                return exactmembers[0]
+            elif len(casemembers) == 1:
+                return casemembers[0]
+            elif len(startsmembers) == 1:
+                return startsmembers[0]
+            elif len(containmembers) == 1:
+                return containmembers[0]
+            elif len(exactmembers) > 1:
+                return exactmembers[0]
+            elif len(casemembers) > 1:
+                return startsmembers[0]
+            elif len(startsmembers) > 1:
+                return containmembers[0]
+            elif len(containmembers) > 1:
+                return containmembers[0]
+            elif len(containmembers) == 0:
+                return None
+
 
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
@@ -607,7 +608,7 @@ class Funstuff:
 
 
     @commands.command()
-    async def hello():
+    async def hello(self):
         """Checks if I am alive."""
         await self.bot.say('Hi, I am alive!')
 
@@ -657,7 +658,7 @@ class Funstuff:
 
 
     @commands.command()
-    async def respect():
+    async def respect(self):
         """For Moon Moon to know how good his bot is."""
         f = open('respects.txt', 'r+')
         respects = f.read()
@@ -701,7 +702,6 @@ class Funstuff:
 
 
     @commands.command(pass_context=True)
-
     async def rquote(self, ctx):
         """From a list of random quotes, it says one."""
         quotes = [
@@ -734,14 +734,12 @@ class Funstuff:
         if ctx.invoked_subcommand is None:
             await self.bot.say('Use `&help lsg` to see the subcommands.')
 
-    initiating = {s.name: False for s in self.bot.servers}
-
-
+    initiating = {}
     @lsg.command(name='start', pass_context=True)
     async def _start(self, ctx):
         """Initiates a LSG game"""
         global initiating
-        if initiating.get(ctx.message.server.id):
+        if initiating.get(ctx.message.server.id, True):
             await self.bot.say("There's already a LSG initiating, wait until that game is done and then you can make your own")
         else:
             playerlist = [ctx.message.author]
@@ -942,7 +940,7 @@ class Funstuff:
 
 
     @call.command(name='list')
-    async def _calllist():
+    async def _calllist(self):
         """Returns a list of current call-lines"""
         fmt = "__Current call-lines:__\nYou can make your own call-line with `&call join <name>`\n"
         if len(call_lines) != 0:

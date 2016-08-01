@@ -357,3 +357,4 @@ class Music:
             send += 'Total duration: `[{0}]`'.format(
                 datetime.timedelta(seconds=totalduration))
             await self.bot.say(send)
+            

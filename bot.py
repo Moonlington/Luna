@@ -6,7 +6,10 @@ import json, asyncio
 import copy
 import logging
 import traceback
+import os
 import sys
+import requests
+import linecache
 
 initial_extensions = [
     'cogs.Funstuff',
@@ -38,17 +41,17 @@ async def on_command_error(error, ctx):
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
         traceback.print_tb(error.original.__traceback__)
-		print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+        print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
+    print('\n\n\nLogged in as')
+    print(bot.user.name)
+    print(bot.user.id)
     print('--------------')
     print('In servers:')
-    print("\n".join(s.name for s in client.servers if s.name))
+    print("\n".join(s.name for s in bot.servers if s.name))
     print('--------------')
     if sys.platform == "win32":
         if os.path.exists(os.path.join(os.getcwd(), "libopus.dll")):
@@ -84,7 +87,7 @@ async def on_ready():
 
 @bot.event
 async def on_resumed():
-print('resumed bot...')
+    print('resumed bot...')
 
 
 @bot.event
@@ -96,16 +99,16 @@ async def on_command(command, ctx):
     else:
         destination = '#{0.channel.name} ({0.server.name})'.format(message)
 
-	log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
+    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
 
 
 def load_credentials():
     with open('credentials.json') as f:
-		return json.load(f)
+        return json.load(f)
 
 
 @bot.command()
-@checks.is_owner
+@checks.is_owner()
 async def load(extension_name : str):
     """Loads an extension."""
     try:
@@ -117,11 +120,11 @@ async def load(extension_name : str):
 
 
 @bot.command()
-@checks.is_owner
+@checks.is_owner()
 async def unload(extension_name : str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
-	await bot.say("{} unloaded.".format(extension_name))
+    await bot.say("{} unloaded.".format(extension_name))
 
 
 @bot.command()
@@ -129,7 +132,7 @@ async def invite():
     """Sends an invite link for you to invite me to your personal server."""
     await bot.say(
         'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
-        'https://discordapp.com/oauth2/authorize?&client_id=170405995049254913&scope=bot&permissions=-1\n')
+        'https://discordapp.com/oauth2/authorize?&bot_id={}}&scope=bot&permissions=-1\n'.format(bot.bot_id))
 
 
 @bot.command()
@@ -157,17 +160,28 @@ Visible Users: {4}'''
     await bot.say(fmt.format(bot.user, uptime, scounter, ccounter, ucounter))
 
 
+def PrintException():
+    exc_type, exc_obj, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    linecache.checkcache(filename)
+    line = linecache.getline(filename, lineno, f.f_globals)
+    print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+
+
 if __name__ == '__main__':
-	credentials = load_credentials()
-    bot.client_id = credentials['client_id']
+    credentials = load_credentials()
+    bot.bot_id = credentials['client_id']
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)
-        except Exception as e:
-			print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
+        except:
+            PrintException()
 
-	bot.run(credentials['token'])
+    bot.run(credentials['token'])
     handlers = log.handlers[:]
     for hdlr in handlers:
         hdlr.close()
-		log.removeHandler(hdlr)
+        log.removeHandler(hdlr)
+        

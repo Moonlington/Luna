@@ -5,5 +5,6 @@ def setup(bot):
     bot.add_cog(Members(bot))
 
 class Members:
-    def __init__(self, bot)
+    def __init__(self, bot):
         self.bot = bot
+        
