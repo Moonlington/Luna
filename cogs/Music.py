@@ -57,7 +57,7 @@ class VoiceEntry:
 
             self.upload_date = date
         except TypeError:
-            await self.bot.say('YouTube said: This video is not available.')
+            await self.bot.say('YouTube said: **This video is not available.**')
 
     def __str__(self):
         fmt = '**{0.title}** uploaded by **{0.uploader}** and requested by **{1.display_name}**'
