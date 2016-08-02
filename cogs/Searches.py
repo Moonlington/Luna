@@ -17,7 +17,7 @@ class Searches:
         self.bot = bot
 
     @commands.command()
-    async def define(*, to_define: str):
+    async def define(self, *, to_define: str):
         """Using Urban Dictionary, define stuff."""
         yee = to_define
         defs = ud.define(yee)
@@ -35,7 +35,7 @@ class Searches:
             await self.bot.say('**Error:** Definition not found')
 
     @commands.command(name='google', pass_context=True)
-    async def _google(ctx, *, googlesearch):
+    async def _google(self, ctx, *, googlesearch):
         """Googles stuff"""
         query = googlesearch
         await self.bot.type()
@@ -44,7 +44,7 @@ class Searches:
             '{}, you searched for: **{}**\nThis is the result: {}'.format(ctx.message.author.mention, query, next(url)))
 
     @commands.command(pass_context=True, aliases=['yt'])
-    async def youtube(ctx, *, ytsearch: str):
+    async def youtube(self, ctx, *, ytsearch: str):
         """Does a little YouTube search."""
         opener = request.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
@@ -64,7 +64,7 @@ class Searches:
             await self.bot.say('Sorry I could not find any results containing the name `{}`'.format(errorthing))
 
     @commands.command()
-    async def fanficton(*, fanfucksearch: str):
+    async def fanficton(self, *, fanfucksearch: str):
         """Searches the shittiest and weirdest fanfics on fanfiction.net"""
         search = fanfucksearch.split()
         thing = "+".join(search)

@@ -126,6 +126,7 @@ def PrintException():
 if __name__ == '__main__':
     credentials = load_credentials()
     bot.bot_id = credentials['client_id']
+    bot.starttime = datetime.datetime.now()
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)

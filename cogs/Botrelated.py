@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 from cogs.utils import checks
+import datetime
+import os
 
 def setup(bot):
     bot.add_cog(Botrelated(bot))
@@ -43,6 +45,11 @@ class Botrelated:
         self.bot.unload_extension("cogs." + extension_name)
         await self.bot.say("{} unloaded.".format(extension_name))
 
+    @commands.command()
+    @checks.is_owner()
+    async def cls(self):
+        os.system("cls")
+        await self.bot.say("Cleared console.")
 
     @commands.command()
     async def invite(self):
@@ -55,7 +62,7 @@ class Botrelated:
     @commands.command()
     async def botabout(self):
         """I'll tell a little about myself."""
-        uptime = datetime.datetime.now() - starttime
+        uptime = datetime.datetime.now() - self.bot.starttime
         ucounter = 0
         for _ in self.bot.get_all_members():
             ucounter += 1
