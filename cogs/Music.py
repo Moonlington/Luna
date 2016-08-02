@@ -28,33 +28,36 @@ class VoiceEntry:
         ydl = youtube_dl.YoutubeDL(opts)
         func = functools.partial(ydl.extract_info, self.url, download=False)
         info = await self.bot.loop.run_in_executor(None, func)
-        if "entries" in info:
-            info = info['entries'][0]
-        self.info = info
-        self.download_url = info.get('url')
-        self.views = info.get('view_count')
-        self.is_live = bool(info.get('is_live'))
-        self.likes = info.get('like_count')
-        self.dislikes = info.get('dislike_count')
-        self.duration = info.get('duration')
-        self.uploader = info.get('uploader')
+        try:
+            if "entries" in info:
+                info = info['entries'][0]
+            self.info = info
+            self.download_url = info.get('url')
+            self.views = info.get('view_count')
+            self.is_live = bool(info.get('is_live'))
+            self.likes = info.get('like_count')
+            self.dislikes = info.get('dislike_count')
+            self.duration = info.get('duration')
+            self.uploader = info.get('uploader')
 
-        is_twitch = 'twitch' in self.url
-        if is_twitch:
-            self.title = info.get('description')
-            self.description = None
-        else:
-            self.title = info.get('title')
-            self.description = info.get('description')
+            is_twitch = 'twitch' in self.url
+            if is_twitch:
+                self.title = info.get('description')
+                self.description = None
+            else:
+                self.title = info.get('title')
+                self.description = info.get('description')
 
-        date = info.get('upload_date')
-        if date:
-            try:
-                date = datetime.datetime.strptime(date, '%Y%M%d').date()
-            except ValueError:
-                date = None
+            date = info.get('upload_date')
+            if date:
+                try:
+                    date = datetime.datetime.strptime(date, '%Y%M%d').date()
+                except ValueError:
+                    date = None
 
-        self.upload_date = date
+            self.upload_date = date
+        except TypeError:
+            await self.bot.say('YouTube said: This video is not available.')
 
     def __str__(self):
         fmt = '**{0.title}** uploaded by **{0.uploader}** and requested by **{1.display_name}**'
@@ -326,7 +329,7 @@ class Music:
             t2 = datetime.datetime.now()
             duration = (t2 - t1).total_seconds()
             await self.bot.say(
-                'Now playing {0} [skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.player.duration, 60)))
+                'Now playing {0} [skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
 
     @music.command(name='list', pass_context=True, no_pm=True)
     async def _list(self, ctx):
