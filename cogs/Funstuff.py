@@ -599,6 +599,11 @@ class Funstuff:
                                 toEval = sthen
                             else:
                                 toEval = selse
+                    elif toEval.startswith('range:'):
+                        evalrange = toEval[6:]
+                        int1, int2 = evalrange.split('|', 1)
+                        if int1.isdigit() and int2.isdigit():
+                            toEval = str(random.randint(int(int1), int(int2)))
                     else:
                         toEval = "{" + toEval + "}"
                     output = output[0:i2] + toEval + output[i1+1:]
