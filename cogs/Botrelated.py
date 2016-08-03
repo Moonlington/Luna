@@ -3,6 +3,7 @@ from discord.ext import commands
 from cogs.utils import checks
 import datetime
 import os
+import asyncio
 
 def setup(bot):
     bot.add_cog(Botrelated(bot))
@@ -83,10 +84,121 @@ Visible Channels: {3}
 Visible Users: {4}'''
         await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter))
 
+
     @commands.command(hidden=True, pass_context=True)
+    @checks.is_owner()
     async def say(self, ctx, *, text: str):
         try:
             await self.bot.delete_message(ctx.message)
             await self.bot.say(text)
         except:
             await self.bot.say(text)
+
+
+    @commands.command(pass_context=True, hidden=True, name='eval')
+    @checks.is_owner()
+    async def debug(self, ctx, *, code: str):
+        """Evaluates code."""
+        code = code.strip('` ')
+        python = '```py\n{}\n```'
+        try:
+            result = eval(code)
+        except Exception as e:
+            await self.bot.say(python.format(type(e).__name__ + ': ' + str(e)))
+            return
+
+        if asyncio.iscoroutine(result):
+            result = await result
+
+        await self.bot.say(python.format(result))
+
+
+    @commands.command(pass_context=True, hidden=True, name='run')
+    @checks.is_owner()
+    async def debug2(self, ctx, *, code: str):
+        """Runs code."""
+        code = code.strip('` ')
+        python = '```py\n{}\n```'
+        try:
+            result = exec(code)
+        except Exception as e:
+            await self.bot.say(python.format(type(e).__name__ + ': ' + str(e)))
+            return
+
+        if asyncio.iscoroutine(result):
+            result = await result
+
+        await self.bot.say(python.format(result))
+
+
+    @commands.command(pass_context=True, hidden=True)
+    @checks.is_owner()
+    async def repl(self, ctx):
+        def cleanup_code(content):
+            """Automatically removes code blocks from the code."""
+            # remove ```py\n```
+            if content.startswith('```') and content.endswith('```'):
+                return '\n'.join(content.split('\n')[1:-1])
+
+            # remove `foo`
+            return content.strip('` \n')
+
+        def get_syntax_error(e):
+            return '```py\n{0.text}{1:>{0.offset}}\n{2}: {0}```'.format(
+                e, '^', type(e).__name__)
+
+        msg = ctx.message
+
+        repl_locals = {}
+        repl_globals = {'ctx': ctx, 'bot': self.bot, 'message': msg, 'last': None}
+
+        await self.bot.say('Enter code to execute or evaluate. `exit()` or `quit` to exit.')
+        while True:
+            response = await self.bot.wait_for_message(author=msg.author, channel=msg.channel,
+                                                     check=lambda m: m.content.startswith('`'))
+
+            cleaned = cleanup_code(response.content)
+
+            if cleaned in ('quit', 'exit', 'exit()'):
+                await self.bot.say('Exiting.')
+                return
+            code = None
+            executor = exec
+            if cleaned.count('\n') == 0:
+                # single statement, potentially 'eval'
+                try:
+                    code = compile(cleaned, '<repl session>', 'eval')
+                except SyntaxError:
+                    pass
+                else:
+                    executor = eval
+
+            if executor is exec:
+                try:
+                    code = compile(cleaned, '<repl session>', 'exec')
+                except SyntaxError as e:
+                    await self.bot.say(get_syntax_error(e))
+                    continue
+
+            repl_globals['message'] = response
+
+            fmt = None
+
+            try:
+                result = executor(code, repl_globals, repl_locals)
+                if asyncio.iscoroutine(result):
+                    result = await result
+            except Exception as e:
+                fmt = '```py\n{}\n```'.format(traceback.format_exc())
+            else:
+                if result is not None:
+                    fmt = '```py\n{}\n```'.format(result)
+                    repl_globals['last'] = result
+
+            try:
+                if fmt is not None:
+                    await self.bot.send_message(msg.channel, fmt)
+            except discord.Forbidden:
+                pass
+            except discord.HTTPException as e:
+                await self.bot.send_message(msg.channel, 'Unexpected error: `{}`'.format(e))

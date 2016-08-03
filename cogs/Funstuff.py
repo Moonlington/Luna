@@ -4,6 +4,7 @@ import os
 import random
 from itertools import islice, cycle
 from textblob import TextBlob
+import re
 
 
 if not os.path.exists('discord.tags'):
@@ -563,7 +564,7 @@ class Funstuff:
                     return s1 < s2
 
         def lunatagparser(content, args):
-            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args)))
+            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
             iterations = 0
@@ -606,6 +607,33 @@ class Funstuff:
                         int1, int2 = evalrange.split('|', 1)
                         if int1.isdigit() and int2.isdigit():
                             toEval = str(random.randint(int(int1), int(int2)))
+                    elif toEval.startswith('upper:'):
+                        toEval = toEval[6:]
+                        toEval = toEval.upper()
+                    elif toEval.startswith('lower:'):
+                        toEval = toEval[6:]
+                        toEval = toEval.lower()
+                    elif toEval.startswith('replaceregex:'):
+                        index1 = toEval.find('|with:')
+                        index2 = toEval.find('|in:', index1)
+                        if index1 != -1 and index2 != -1:
+                            rep = toEval[13:index1]
+                            rwith = toEval[index1+6:index2]
+                            rin = toEval[index2+4:]
+                            if len(rep) > 0:
+                                try:
+                                    toEval = re.sub(rep, rwith, rin)
+                                except:
+                                    pass
+                    elif toEval.startswith('replace:'):
+                        index1 = toEval.find('|with:')
+                        index2 = toEval.find('|in:', index1)
+                        if index1 != -1 and index2 != -1:
+                            rep = toEval[8:index1]
+                            rwith = toEval[index1+6:index2]
+                            rin = toEval[index2+4:]
+                            if len(rep) > 0:
+                                toEval = rin.replace(rep, rwith)
                     else:
                         toEval = "{" + toEval + "}"
                     output = output[0:i2] + toEval + output[i1+1:]
