@@ -57,7 +57,7 @@ class Botrelated:
         """Sends an invite link for you to invite me to your personal server."""
         await self.bot.say(
             'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
-            'https://discordapp.com/oauth2/authorize?&bot_id={}&scope=bot&permissions=-1\n'.format(self.bot.bot_id))
+            'https://discordapp.com/oauth2/authorize?&client_id={}&scope=bot&permissions=-1\n'.format(self.bot.bot_id))
 
 
     @commands.command()

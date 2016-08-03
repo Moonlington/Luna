@@ -616,6 +616,86 @@ class Funstuff:
 
 
         def jagtagparser(content, args):
+            def evaluateStatement(statement):
+                index = statement.find('|=|')
+                if index == -1:
+                    index = statement.find('|<|')
+                if index == -1:
+                    index = statement.find('|>|')
+                if index == -1:
+                    index = statement.find('|~|')
+                if index == -1:
+                    index = statement.find('|?|')
+                if index == -1:
+                    return False
+                s1 = statement[0:index]
+                s2 = statement[index+3:]
+                try:
+                    i1 = float(s1)
+                    i2 = float(s2)
+                    if statement[index:index+3] == "|=|":
+                        return i1 == i2
+                    elif statement[index:index+3] == "|~|":
+                        return i1*100 == i2*100
+                    elif statement[index:index+3] == "|>|":
+                        return i1 > i2
+                    elif statement[index:index+3] == "|<|":
+                        return i1 < i2
+                except ValueError:
+                    if statement[index:index+3] == "|=|":
+                        return s1 == s2
+                    elif statement[index:index+3] == "|~|":
+                        return s1.lower() == s2.lower()
+                    elif statement[index:index+3] == "|>|":
+                        return s1 > s2
+                    elif statement[index:index+3] == "|<|":
+                        return s1 < s2
+                    elif statement[index:index+3] == "|?|":
+                        return bool(re.search(s2, s1))
+
+
+            def evaluateMath(statement):
+                index = statement.find('|+|')
+                if index == -1:
+                    index = statement.find('|-|')
+                if index == -1:
+                    index = statement.find('|*|')
+                if index == -1:
+                    index = statement.find('|%|')
+                if index == -1:
+                    index = statement.find('|/|')
+                if index == -1:
+                    return False
+                s1 = statement[0:index]
+                s2 = statement[index+3:]
+                try:
+                    i1 = float(s1)
+                    i2 = float(s2)
+                    if statement[index:index+3] == "|+|":
+                        return str(i1+i2)
+                    elif statement[index:index+3] == "|-|":
+                        return str(i1-i2)
+                    elif statement[index:index+3] == "|*|":
+                        return str(i1*i2)
+                    elif statement[index:index+3] == "|%|":
+                        return str(i1%i2)
+                    elif statement[index:index+3] == "|/|":
+                        return str(i1/i2)
+                except ValueError:
+                    if statement[index:index+3] == "|+|":
+                        return s1 + s2
+                    elif statement[index:index+3] == "|-|":
+                        loc = s1.find(s2)
+                        if loc != -1:
+                            return s1[0:loc]+(s1[loc+len(s2)] if loc+len(s2)<len(s1) else "")
+                        else:
+                            return s1+'-'+s2
+                    elif statement[index:index+3] == "|*|":
+                        return s1+'*'+s2
+                    elif statement[index:index+3] == "|%|":
+                        return s1+'%'+s2
+                    elif statement[index:index+3] == "|/|":
+                        return s1+'/'+s2
             content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
