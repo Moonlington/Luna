@@ -615,7 +615,7 @@ class Funstuff:
                     return s1+'/'+s2
 
 
-        def lunatagparser(content, args):
+        def jagtagparser(content, args):
             content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
@@ -736,7 +736,7 @@ class Funstuff:
                 aid, tagname, content = line.decode('utf8').split('\u2E6F'  )
                 if tagcalled.lower() == tagname.lower():
                     content = content.replace('\u2E6E', '\n')
-                    await self.bot.say(lunatagparser(content, args))
+                    await self.bot.say(jagtagparser(content, args))
                     found = True
                     break
             if not found:
