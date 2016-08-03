@@ -2,8 +2,11 @@ import discord
 from discord.ext import commands
 import os
 import random
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from itertools import islice, cycle
 from textblob import TextBlob
+from io import BytesIO
 import re
 
 
@@ -539,6 +542,8 @@ class Funstuff:
             if index == -1:
                 index = statement.find('|~|')
             if index == -1:
+                index = statement.find('|?|')
+            if index == -1:
                 return False
             s1 = statement[0:index]
             s2 = statement[index+3:]
@@ -562,6 +567,53 @@ class Funstuff:
                     return s1 > s2
                 elif statement[index:index+3] == "|<|":
                     return s1 < s2
+                elif statement[index:index+3] == "|?|":
+                    return bool(re.search(s2, s1))
+
+
+        def evaluateMath(statement):
+            index = statement.find('|+|')
+            if index == -1:
+                index = statement.find('|-|')
+            if index == -1:
+                index = statement.find('|*|')
+            if index == -1:
+                index = statement.find('|%|')
+            if index == -1:
+                index = statement.find('|/|')
+            if index == -1:
+                return False
+            s1 = statement[0:index]
+            s2 = statement[index+3:]
+            try:
+                i1 = float(s1)
+                i2 = float(s2)
+                if statement[index:index+3] == "|+|":
+                    return str(i1+i2)
+                elif statement[index:index+3] == "|-|":
+                    return str(i1-i2)
+                elif statement[index:index+3] == "|*|":
+                    return str(i1*i2)
+                elif statement[index:index+3] == "|%|":
+                    return str(i1%i2)
+                elif statement[index:index+3] == "|/|":
+                    return str(i1/i2)
+            except ValueError:
+                if statement[index:index+3] == "|+|":
+                    return s1 + s2
+                elif statement[index:index+3] == "|-|":
+                    loc = s1.find(s2)
+                    if loc != -1:
+                        return s1[0:loc]+(s1[loc+len(s2)] if loc+len(s2)<len(s1) else "")
+                    else:
+                        return s1+'-'+s2
+                elif statement[index:index+3] == "|*|":
+                    return s1+'*'+s2
+                elif statement[index:index+3] == "|%|":
+                    return s1+'%'+s2
+                elif statement[index:index+3] == "|/|":
+                    return s1+'/'+s2
+
 
         def lunatagparser(content, args):
             content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
@@ -569,6 +621,7 @@ class Funstuff:
             toEval = ""
             iterations = 0
             lastoutput = ""
+            variables = {}
             while lastoutput != output and iterations < 200:
                 lastoutput = output
                 iterations += 1
@@ -578,6 +631,7 @@ class Funstuff:
                     toEval = output[i2+1:i1]
                     if toEval.startswith('length:'):
                         toEval = str(len(toEval[7:]))
+
                     elif toEval.startswith('arg:'):
                         argget = int(toEval[4:]) if toEval[4:].isdigit() else False
                         if argget is False:
@@ -587,10 +641,12 @@ class Funstuff:
                                 toEval = ""
                             else:
                                 toEval = next(islice(cycle(args), argget, argget+1))
+
                     elif toEval.startswith("choose:"):
                         choices = toEval[7:]
                         choices = choices.split('|')
                         toEval = random.choice(choices)
+
                     elif toEval.startswith("if:"):
                         index1 = toEval.find('|then:')
                         index2 = toEval.find('|else:', index1)
@@ -602,20 +658,25 @@ class Funstuff:
                                 toEval = sthen
                             else:
                                 toEval = selse
+
                     elif toEval.startswith('range:'):
                         evalrange = toEval[6:]
                         int1, int2 = evalrange.split('|', 1)
                         if int1.isdigit() and int2.isdigit():
                             toEval = str(random.randint(int(int1), int(int2)))
+
                     elif toEval.startswith('upper:'):
                         toEval = toEval[6:]
                         toEval = toEval.upper()
+
                     elif toEval.startswith('lower:'):
                         toEval = toEval[6:]
                         toEval = toEval.lower()
+
                     elif toEval.startswith('replaceregex:'):
                         index1 = toEval.find('|with:')
                         index2 = toEval.find('|in:', index1)
+
                         if index1 != -1 and index2 != -1:
                             rep = toEval[13:index1]
                             rwith = toEval[index1+6:index2]
@@ -625,6 +686,7 @@ class Funstuff:
                                     toEval = re.sub(rep, rwith, rin)
                                 except:
                                     pass
+
                     elif toEval.startswith('replace:'):
                         index1 = toEval.find('|with:')
                         index2 = toEval.find('|in:', index1)
@@ -634,8 +696,34 @@ class Funstuff:
                             rin = toEval[index2+4:]
                             if len(rep) > 0:
                                 toEval = rin.replace(rep, rwith)
+
+                    elif toEval.startswith('set:'):
+                        variable, stuff = toEval[4:].split('|', 1)
+                        variables[variable] = stuff
+                        toEval = ''
+
+                    elif toEval.startswith('get:'):
+                        variable = toEval[4:]
+                        toEval = variables.get(variable, '')
+
+                    elif toEval.startswith('user:'):
+                        toEval = searchuserlist(toEval[5:], ctx.message).name
+
+                    elif toEval.startswith('nick:'):
+                        toEval = searchuserlist(toEval[5:], ctx.message).display_name
+
+                    elif toEval.startswith('url:'):
+                        toEval = toEval[4:].replace('-', '--').replace('_', "__").replace('%', '~p').replace('?', '~q').replace(" ", "_")
+
+                    elif toEval.startswith('math:'):
+                        toEval = evaluateMath(toEval[5:])
+
+                    elif toEval.startswith('note:'):
+                        toEval = ''
+
                     else:
                         toEval = "{" + toEval + "}"
+
                     output = output[0:i2] + toEval + output[i1+1:]
             return output
 
