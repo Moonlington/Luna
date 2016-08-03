@@ -707,10 +707,10 @@ class Funstuff:
                         toEval = variables.get(variable, '')
 
                     elif toEval.startswith('user:'):
-                        toEval = searchuserlist(toEval[5:], ctx.message).name
+                        toEval = self.searchuserlist(toEval[5:], ctx.message).name
 
                     elif toEval.startswith('nick:'):
-                        toEval = searchuserlist(toEval[5:], ctx.message).display_name
+                        toEval = self.searchuserlist(toEval[5:], ctx.message).display_name
 
                     elif toEval.startswith('url:'):
                         toEval = toEval[4:].replace('-', '--').replace('_', "__").replace('%', '~p').replace('?', '~q').replace(" ", "_")
