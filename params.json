@@ -1,0 +1,6 @@
+{
+  "name": "Luna",
+  "tagline": "A simple bot for Discord.",
+  "body": "<p style=\"text-align:center;\">\r\n<img src=\"http://i.imgur.com/UBmdzKZ.png\"></p>\r\n\r\n---\r\n\r\nA simple bot for Discord.\r\n\r\n## What does Luna offer?\r\n* Memes\r\n* Games (just 1)\r\n* Tag system\r\n* Music\r\n* Fun and stuff\r\n\r\n## How do I add Luna?\r\nJust click this beautiful link: **https://discordapp.com/oauth2/authorize?&client_id=170405995049254913&scope=bot&permissions=-1**\r\n\r\n## If i want to run her myself, how do i do that?\r\nFirst make a file called `credentials.json`, where you enter your bot account's client_id and token. It should look like this.\r\n\r\n```JSON\r\n{\r\n    \"token\": \"your bot token\",\r\n    \"client_id\": \"your client_id\",\r\n}\r\n```\r\n\r\nAfter this you edit `cogs/utils/checks.py` with **YOUR** ID.\r\n\r\n## Stuff you need\r\nA lot of stuff. I really need to shorten it or make a list.",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
