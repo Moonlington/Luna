@@ -442,179 +442,87 @@ class Funstuff:
     def __init__(self, bot):
         self.bot = bot
 
-    def searchuserlist(self, search, message):
-        exactmembers = []
-        casemembers = []
-        startsmembers = []
-        containmembers = []
-        allusers = message.server.members
-        for member in allusers:
-            membercheck = member
-            if search == str(membercheck):
-                exactmembers.append(membercheck)
-            elif search.lower() == str(membercheck).lower():
-                casemembers.append(membercheck)
-            elif str(membercheck).lower().startswith(search):
-                startsmembers.append(membercheck)
-            elif search.lower() in str(membercheck).lower():
-                containmembers.append(membercheck)
-            else:
+    def findUserseverywhere(self, query):
+        mentionregex = "<@!?(\d+)>"
+        userid = ''
+        discrim = None
+        if bool(re.search(mentionregex, query)):
+            userid = re.findall(mentionregex, query)[0]
+            user = discord.utils.get(self.bot.get_all_members(), id=userid)
+            return [user]
+        elif bool(re.search(r"^.*#\d{4}$", query)):
+            discrim = query[-4:]
+            query = query[:-5]
+        exact = set()
+        wrongcase = set()
+        startswith = set()
+        contains = set()
+        lowerquery = query.lower()
+        for u in self.bot.get_all_members():
+            if discrim is not None and u.discriminator != discrim:
                 continue
-        else:
-            exactmembers = list(set(exactmembers))
-            casemembers = list(set(casemembers))
-            startsmembers = list(set(startsmembers))
-            containmembers = list(set(containmembers))
-            if len(exactmembers) == 1:
-                return exactmembers[0]
-            elif len(casemembers) == 1:
-                return casemembers[0]
-            elif len(startsmembers) == 1:
-                return startsmembers[0]
-            elif len(containmembers) == 1:
-                return containmembers[0]
-            elif len(exactmembers) > 1:
-                return exactmembers[0]
-            elif len(casemembers) > 1:
-                return casemembers[0]
-            elif len(startsmembers) > 1:
-                return startsmembers[0]
-            elif len(containmembers) > 1:
-                return containmembers[0]
-            elif len(containmembers) == 0:
-                return self.searcheverywhere(search)
+            if u.name == query:
+                exact.add(u)
+            elif not exact and u.name.lower() == lowerquery:
+                wrongcase.add(u)
+            elif not wrongcase and u.name.lower().startswith(lowerquery):
+                startswith.add(u)
+            elif not startswith and lowerquery in u.name.lower():
+                contains.add(u)
+        if exact:
+            return list(exact)
+        if wrongcase:
+            return list(wrongcase)
+        if startswith:
+            return list(startswith)
+        return list(contains)
 
-    def searcheverywhere(self, search):
-        exactmembers = []
-        casemembers = []
-        startsmembers = []
-        containmembers = []
-        allusers = self.bot.get_all_members()
-        for member in allusers:
-            membercheck = member
-            if search == str(membercheck):
-                exactmembers.append(membercheck)
-            elif search.lower() == str(membercheck).lower():
-                casemembers.append(membercheck)
-            elif str(membercheck).lower().startswith(search):
-                startsmembers.append(membercheck)
-            elif search.lower() in str(membercheck).lower():
-                containmembers.append(membercheck)
-            else:
+
+    def findUsers(self, query, server):
+        mentionregex = "<@!?(\d+)>"
+        userid = ''
+        discrim = None
+        if bool(re.search(mentionregex, query)):
+            userid = re.findall(mentionregex, query)[0]
+            user = discord.utils.get(server.members, id=userid)
+            return [user]
+        elif bool(re.search(r"^.*#\d{4}$", query)):
+            discrim = query[-4:]
+            query = query[:-5]
+        exact = set()
+        wrongcase = set()
+        startswith = set()
+        contains = set()
+        lowerquery = query.lower()
+        for u in server.members:
+            nick = u.display_name
+            if discrim is not None and u.discriminator != discrim:
                 continue
-        else:
-            exactmembers = list(set(exactmembers))
-            casemembers = list(set(casemembers))
-            startsmembers = list(set(startsmembers))
-            containmembers = list(set(containmembers))
-            if len(exactmembers) == 1:
-                return exactmembers[0]
-            elif len(casemembers) == 1:
-                return casemembers[0]
-            elif len(startsmembers) == 1:
-                return startsmembers[0]
-            elif len(containmembers) == 1:
-                return containmembers[0]
-            elif len(exactmembers) > 1:
-                return exactmembers[0]
-            elif len(casemembers) > 1:
-                return startsmembers[0]
-            elif len(startsmembers) > 1:
-                return containmembers[0]
-            elif len(containmembers) > 1:
-                return containmembers[0]
-            elif len(containmembers) == 0:
-                return None
+            if u.name == query or nick == query:
+                exact.add(u)
+            elif not exact and (u.name.lower() == lowerquery or nick.lower() == lowerquery):
+                wrongcase.add(u)
+            elif not wrongcase and (u.name.lower().startswith(lowerquery) or nick.lower().startswith(lowerquery)):
+                startswith.add(u)
+            elif not startswith and (lowerquery in u.name.lower() or lowerquery in nick.lower()):
+                contains.add(u)
+        if exact:
+            return list(exact)
+        if wrongcase:
+            return list(wrongcase)
+        if startswith:
+            return list(startswith)
+        return list(contains)
+
 
     def lookupid(self, _id):
         user = discord.utils.get(self.bot.get_all_members(), id=_id)
         return user
 
+
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
         """Luna's very own tag system, totally didn't rip off Spectra..."""
-        def evaluateStatement(statement):
-            index = statement.find('|=|')
-            if index == -1:
-                index = statement.find('|<|')
-            if index == -1:
-                index = statement.find('|>|')
-            if index == -1:
-                index = statement.find('|~|')
-            if index == -1:
-                index = statement.find('|?|')
-            if index == -1:
-                return False
-            s1 = statement[0:index]
-            s2 = statement[index+3:]
-            try:
-                i1 = float(s1)
-                i2 = float(s2)
-                if statement[index:index+3] == "|=|":
-                    return i1 == i2
-                elif statement[index:index+3] == "|~|":
-                    return i1*100 == i2*100
-                elif statement[index:index+3] == "|>|":
-                    return i1 > i2
-                elif statement[index:index+3] == "|<|":
-                    return i1 < i2
-            except ValueError:
-                if statement[index:index+3] == "|=|":
-                    return s1 == s2
-                elif statement[index:index+3] == "|~|":
-                    return s1.lower() == s2.lower()
-                elif statement[index:index+3] == "|>|":
-                    return s1 > s2
-                elif statement[index:index+3] == "|<|":
-                    return s1 < s2
-                elif statement[index:index+3] == "|?|":
-                    return bool(re.search(s2, s1))
-
-
-        def evaluateMath(statement):
-            index = statement.find('|+|')
-            if index == -1:
-                index = statement.find('|-|')
-            if index == -1:
-                index = statement.find('|*|')
-            if index == -1:
-                index = statement.find('|%|')
-            if index == -1:
-                index = statement.find('|/|')
-            if index == -1:
-                return False
-            s1 = statement[0:index]
-            s2 = statement[index+3:]
-            try:
-                i1 = float(s1)
-                i2 = float(s2)
-                if statement[index:index+3] == "|+|":
-                    return str(i1+i2)
-                elif statement[index:index+3] == "|-|":
-                    return str(i1-i2)
-                elif statement[index:index+3] == "|*|":
-                    return str(i1*i2)
-                elif statement[index:index+3] == "|%|":
-                    return str(i1%i2)
-                elif statement[index:index+3] == "|/|":
-                    return str(i1/i2)
-            except ValueError:
-                if statement[index:index+3] == "|+|":
-                    return s1 + s2
-                elif statement[index:index+3] == "|-|":
-                    loc = s1.find(s2)
-                    if loc != -1:
-                        return s1[0:loc]+(s1[loc+len(s2)] if loc+len(s2)<len(s1) else "")
-                    else:
-                        return s1+'-'+s2
-                elif statement[index:index+3] == "|*|":
-                    return s1+'*'+s2
-                elif statement[index:index+3] == "|%|":
-                    return s1+'%'+s2
-                elif statement[index:index+3] == "|/|":
-                    return s1+'/'+s2
-
-
         def jagtagparser(content, args):
             def evaluateStatement(statement):
                 index = statement.find('|=|')
@@ -665,12 +573,13 @@ class Funstuff:
                 if index == -1:
                     index = statement.find('|/|')
                 if index == -1:
-                    return False
-                s1 = statement[0:index]
-                s2 = statement[index+3:]
+                    return statement
+                s1 = evaluateMath(statement[0:index])
+                s2 = evaluateMath(statement[index+3:])
                 try:
                     i1 = float(s1)
                     i2 = float(s2)
+                    print(i1, i2)
                     if statement[index:index+3] == "|+|":
                         return str(i1+i2)
                     elif statement[index:index+3] == "|-|":
@@ -696,6 +605,8 @@ class Funstuff:
                         return s1+'%'+s2
                     elif statement[index:index+3] == "|/|":
                         return s1+'/'+s2
+
+
             content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
@@ -713,14 +624,14 @@ class Funstuff:
                         toEval = str(len(toEval[7:]))
 
                     elif toEval.startswith('arg:'):
-                        argget = int(toEval[4:]) if toEval[4:].isdigit() else False
-                        if argget is False:
-                            toEval = "{" + toEval + "}"
-                        else:
+                        try:
+                            argget = int(toEval[4:])
                             if not args:
                                 toEval = ""
                             else:
                                 toEval = next(islice(cycle(args), argget, argget+1))
+                        except ValueError:
+                            pass
 
                     elif toEval.startswith("choose:"):
                         choices = toEval[7:]
@@ -762,10 +673,7 @@ class Funstuff:
                             rwith = toEval[index1+6:index2]
                             rin = toEval[index2+4:]
                             if len(rep) > 0:
-                                try:
-                                    toEval = re.sub(rep, rwith, rin)
-                                except:
-                                    pass
+                                toEval = re.sub(rep.replace("\u0013","{").replace("\u0014","}"), re.sub("\$(\d+)", "\\\1", rwith), rin)
 
                     elif toEval.startswith('replace:'):
                         index1 = toEval.find('|with:')
@@ -787,10 +695,48 @@ class Funstuff:
                         toEval = variables.get(variable, '')
 
                     elif toEval.startswith('user:'):
-                        toEval = self.searchuserlist(toEval[5:], ctx.message).name
+                        query = toEval[5:]
+                        if not query:
+                            toEval = ""
+                        else:
+                            users = None
+                            if ctx.message.server is not None:
+                                users = self.findUsers(query, ctx.message.server)
+                            if users is None or not users:
+                                users = self.findUserseverywhere(query)
+                            if not users:
+                                return '⚠ No users found matching "{}"'.format(query)
+                            elif len(users) > 1:
+                                out = '⚠ Multiple users found matching "{}":'.format(query)
+                                for u in users[:6]:
+                                    out += "\n - {}".format(str(u))
+                                if len(users) > 6:
+                                    out += "\n And {} more...".format(str(len(users) - 6))
+                                return out
+
+                            toEval = users[0].name
 
                     elif toEval.startswith('nick:'):
-                        toEval = self.searchuserlist(toEval[5:], ctx.message).display_name
+                        query = toEval[5:]
+                        if not query:
+                            toEval = ""
+                        else:
+                            users = None
+                            if ctx.message.server is not None:
+                                users = self.findUsers(query, ctx.message.server)
+                            if users is None or not users:
+                                users = self.findUserseverywhere(query)
+                            if not users:
+                                return '⚠ No users found matching "{}"'.format(query)
+                            elif len(users) > 1:
+                                out = '⚠ Multiple users found matching "{}":'.format(query)
+                                for u in users[:6]:
+                                    out += "\n - {}".format(str(u))
+                                if len(users) > 6:
+                                    out += "\n And {} more...".format(str(len(users) - 6))
+                                return out
+
+                            toEval = users[0].display_name
 
                     elif toEval.startswith('url:'):
                         toEval = toEval[4:].replace('-', '--').replace('_', "__").replace('%', '~p').replace('?', '~q').replace(" ", "_")
@@ -802,10 +748,10 @@ class Funstuff:
                         toEval = ''
 
                     else:
-                        toEval = "{" + toEval + "}"
+                        toEval = "\u0013" + toEval + "\u0014"
 
                     output = output[0:i2] + toEval + output[i1+1:]
-            return output
+            return output.replace("\u0013","{").replace("\u0014","}")
 
 
         if tagcalled is None:
@@ -873,8 +819,25 @@ class Funstuff:
     @tag.command(name='list', pass_context=True)
     async def _taglist(self, ctx, *, name: str=None):
         with open('discord.tags', 'rb+') as file:
-            person = ctx.message.author if name is None else self.searchuserlist(
-                name, ctx.message)
+            person = ctx.message.author
+            if name is not None:
+                users = None
+                if ctx.message.server is not None:
+                    users = self.findUsers(name, ctx.message.server)
+                if users is None or not users:
+                    users = self.findUserseverywhere(name)
+                if not users:
+                    await self.bot.say('⚠ No users found matching "{}"'.format(name))
+                    return
+                elif len(users) > 1:
+                    out = '⚠ Multiple users found matching "{}":'.format(name)
+                    for u in users[:6]:
+                        out += "\n - {}".format(str(u))
+                    if len(users) > 6:
+                        out += "\n And {} more...".format(str(len(users) - 6))
+                    await self.bot.say(out)
+                    return
+                person = users[0]
             personid = person.id
             lines = file.readlines()
             file.seek(0)
@@ -982,7 +945,6 @@ class Funstuff:
         """For that moment that you really want to glomp someone."""
         if who_to_glomp is not None:
             toglomp = who_to_glomp
-            toglomp = self.searchuserlist(toglomp, ctx.message)
             if toglomp is not None:
                 await self.bot.say('*{} glomps {}*'.format(ctx.message.author.name, toglomp.name))
             else:
