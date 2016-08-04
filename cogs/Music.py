@@ -287,7 +287,7 @@ class Music:
 
         try:
             state.audio_player.cancel()
-            del bot.voice_states[server.id]
+            del self.voice_states[server.id]
             await state.voice.disconnect()
         except:
             pass
