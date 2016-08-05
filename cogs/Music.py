@@ -5,6 +5,7 @@ import functools
 import asyncio
 import datetime
 import math
+from collections import deque
 
 def setup(bot):
     bot.add_cog(Music(bot))
@@ -95,6 +96,36 @@ class VoiceState:
     def player(self):
         return self.currentplayer
 
+    def sortclumps(self, l, n, queue=[]):
+        def safe_list_get (l, idx, default):
+            try:
+                return l[idx]
+            except IndexError:
+                l.append(default)
+                return default
+        def nextclump(ind, i):
+            ind += 1
+            try:
+                clump = newqueue[ind]
+            except IndexError:
+                newqueue.append([])
+                clump = newqueue[ind]
+            userclump = [hash(e.requester) for e in clump]
+            if userclump.count(hash(i.requester)) < n:
+                clump.append(i)
+            else:
+                nextclump(ind, i)
+        newqueue = queue.copy()
+        ind = 0
+        clump = safe_list_get(newqueue, 0, [])
+        for i in l:
+            userclump = [hash(e.requester) for e in clump]
+            if userclump.count(hash(i.requester)) < n:
+                clump.append(i)
+            else:
+                nextclump(ind, i)
+        return deque([j for i in newqueue for j in i])
+
     def skip(self):
         self.skip_votes.clear()
         if self.is_playing():
@@ -114,6 +145,7 @@ class VoiceState:
             self.play_next_song.clear()
             self.empty = self.songs.empty()
             self.current = await self.songs.get()
+            self.songs._queue = self.sortclumps(self.songs._queue, 2, deque())
             self.currentplayer = self.create_player(self.current)
             if not self.empty:
                 await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
