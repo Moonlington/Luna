@@ -142,6 +142,7 @@ class VoiceState:
 
     async def audio_player_task(self):
         while True:
+            out = None
             self.play_next_song.clear()
             self.skip_votes.clear()
             self.empty = self.songs.empty()
@@ -149,9 +150,15 @@ class VoiceState:
             self.songs._queue = self.sortclumps(self.songs._queue, 2, deque())
             self.currentplayer = self.create_player(self.current)
             if not self.empty:
-                await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                out = await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.currenttime = datetime.datetime.now()
             self.currentplayer.start()
+            await asyncio.sleep(5)
+            if out:
+                try:
+                    await self.bot.delete_message(out)
+                except:
+                    pass
             await self.play_next_song.wait()
 
 
@@ -186,11 +193,16 @@ class Music:
     @commands.group(
         pass_context=True,
         description='Various music/voice channel commands for Luna.',
-        aliases=['lm'])
+        aliases=['lm', "Im"])
     async def music(self, ctx):
         """Music commands for Luna."""
         if ctx.invoked_subcommand is None:
-            await self.bot.say('Use `&help music` or `&help lm` to see the subcommands.')
+            out = await self.bot.say('Use `&help music` or `&help lm` to see the subcommands.')
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
 
     @music.command(no_pm=True)
     async def join(self, *, channel: discord.Channel):
@@ -198,11 +210,26 @@ class Music:
         try:
             await self.bot.create_voice_client(channel)
         except discord.InvalidArgument:
-            await self.bot.say('This is not a voice channel...')
+            out = await self.bot.say('This is not a voice channel...')
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
         except discord.ClientException:
-            await self.bot.say('Already in a voice channel...')
+            out = await self.bot.say('Already in a voice channel...')
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
         else:
-            await self.bot.say('Ready to play audio in ' + channel.name)
+            out = await self.bot.say('Ready to play audio in ' + channel.name)
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
 
     @music.command(pass_context=True, no_pm=True)
     async def summon(self, ctx):
@@ -250,7 +277,7 @@ class Music:
         if shuffle:
             song.replace(' +shuffle', '')
         if 'playlist?list=' in song:
-            await self.bot.say('Playlist detected, enqueuing all items...')
+            playlistout = await self.bot.say('Playlist detected, enqueuing all items...')
             info = ytdl.extract_info(song, download=False, process=False)
             songlist = []
             for e in info['entries']:
@@ -269,16 +296,36 @@ class Music:
                     firstsong = entry
                 await state.songs.put(entry)
             if weeee:
-                await self.bot.say('Successfully enqueued **{}** entries and started playing {}'.format(len(songlist), firstsong))
+                out = await self.bot.say('Successfully enqueued **{}** entries and started playing {}'.format(len(songlist), firstsong))
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out, playlistout])
+                except:
+                    pass
             else:
-                await self.bot.say('Successfully enqueued **{}** entries!'.format(len(songlist)))
+                out = await self.bot.say('Successfully enqueued **{}** entries!'.format(len(songlist)))
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out, playlistout])
+                except:
+                    pass
         else:
             entry = VoiceEntry(self.bot, ctx.message, song)
             await entry.getInfo()
             if not state.is_playing():
-                await self.bot.say('Enqueued and now playing ' + str(entry))
+                out = await self.bot.say('Enqueued and now playing ' + str(entry))
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out])
+                except:
+                    pass
             else:
-                await self.bot.say('Enqueued ' + str(entry))
+                out = await self.bot.say('Enqueued ' + str(entry))
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out])
+                except:
+                    pass
             await state.songs.put(entry)
 
     @music.command(pass_context=True, no_pm=True)
@@ -288,7 +335,12 @@ class Music:
         if state.is_playing():
             player = state.player
             player.volume = value / 100
-            await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
+            out = await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
 
     @music.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
@@ -332,23 +384,52 @@ class Music:
         """
         state = self.get_voice_state(ctx.message.server)
         if not state.is_playing():
-            await self.bot.say('Not playing any music right now...')
-            return
+            out = await self.bot.say('Not playing any music right now...')
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+                return
+            except:
+                pass
 
         voter = ctx.message.author
         if voter == state.current.requester:
-            await self.bot.say('Requester requested skipping song...')
+            out = await self.bot.say('Requester requested skipping song...')
             state.skip()
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
         elif voter.id not in state.skip_votes:
             state.skip_votes.add(voter.id)
             total_votes = len(state.skip_votes)
             if total_votes >= 3:
-                await self.bot.say('Skip vote passed, skipping song...')
+                out = await self.bot.say('Skip vote passed, skipping song...')
                 state.skip()
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out])
+                except:
+                    pass
+
             else:
-                await self.bot.say('Skip vote added, currently at [{}/3]'.format(total_votes))
+                out = await self.bot.say('Skip vote added, currently at [{}/3]'.format(total_votes))
+                await asyncio.sleep(5)
+                try:
+                    await self.bot.delete_messages([ctx.message, out])
+                except:
+                    pass
+
         else:
-            await self.bot.say('You have already voted to skip this song.')
+            out = await self.bot.say('You have already voted to skip this song.')
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
 
     @music.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
@@ -361,8 +442,14 @@ class Music:
             t1 = state.currenttime
             t2 = datetime.datetime.now()
             duration = (t2 - t1).total_seconds()
-            await self.bot.say(
+            out = await self.bot.say(
                 'Now playing {0} [skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
 
     @music.command(name='list', pass_context=True, no_pm=True)
     async def _list(self, ctx):
@@ -370,7 +457,13 @@ class Music:
         state = self.get_voice_state(ctx.message.server)
         entries = [x for x in state.songs._queue]
         if len(entries) == 0:
-            await self.bot.say("There are currently no songs in the queue!")
+            out = await self.bot.say("There are currently no songs in the queue!")
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
         else:
             counter = 1
             totalduration = 0
@@ -387,4 +480,10 @@ class Music:
                 totalduration += player.duration
             send += 'Total duration: `[{0}]`'.format(
                 datetime.timedelta(seconds=totalduration))
-            await self.bot.say(send)
+            out = await self.bot.say(send)
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
