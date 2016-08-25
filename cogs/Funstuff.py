@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from cogs.utils import checks
 import os
 import random
 import matplotlib.pyplot as plt
@@ -8,10 +9,14 @@ from itertools import islice, cycle
 from textblob import TextBlob
 from io import BytesIO
 import re
-
+import asyncio
+from PIL import Image, ImageDraw, ImageFont
 
 if not os.path.exists('discord.tags'):
     open('discord.tags', 'w').close()
+
+if not os.path.exists('overrides.tags'):
+    open('overrides.tags', 'w').close()
 
 
 class CallLine:
@@ -58,7 +63,7 @@ class CallLine:
             callchannels = self.channels
             user = self.client.user
             if len(self.channels) == 0:
-                del call_lines[self.name]
+                del self.call_lines[self.name]
                 break
             else:
                 message = await self.client.wait_for_message(timeout=10, check=lambda m: m.channel in callchannels and m.author != user and not m.content.startswith('&'))
@@ -441,6 +446,8 @@ class Funstuff:
 
     def __init__(self, bot):
         self.bot = bot
+        self.initiating = {}
+        self.call_lines = {}
 
     def findUserseverywhere(self, query):
         mentionregex = "<@!?(\d+)>"
@@ -607,7 +614,7 @@ class Funstuff:
                         return s1+'/'+s2
 
 
-            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.channel is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.channel is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name).replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
+            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.server is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.server is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name if ctx.message.server is not None else "Direct Message").replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
             iterations = 0
@@ -756,17 +763,27 @@ class Funstuff:
 
         if tagcalled is None:
             await self.bot.say("Use `&help tag` for the subcommands.")
-        with open('discord.tags', 'rb+') as file:
+        with open("overrides.tags", "rb+") as file:
             found = False
             for line in file:
-                aid, tagname, content = line.decode('utf8').split('\u2E6F'  )
-                if tagcalled.lower() == tagname.lower():
+                aid, tagname, content = line.decode('utf8').split('\u2E6F')
+                if tagcalled.lower() == tagname.lower() and ctx.message.server.id == aid:
                     content = content.replace('\u2E6E', '\n')
                     await self.bot.say(jagtagparser(content, args))
                     found = True
                     break
             if not found:
-                await self.bot.say('That is not a known tag, use `&help tag` for more information')
+                with open('discord.tags', 'rb+') as file:
+                    found = False
+                    for line in file:
+                        aid, tagname, content = line.decode('utf8').split('\u2E6F')
+                        if tagcalled.lower() == tagname.lower():
+                            content = content.replace('\u2E6E', '\n')
+                            await self.bot.say(jagtagparser(content, args))
+                            found = True
+                            break
+                    if not found:
+                        await self.bot.say('That is not a known tag, use `&help tag` for more information')
 
     @tag.command(name='create', pass_context=True)
     async def _create(self, ctx, tagname: str, *, content: str):
@@ -885,19 +902,28 @@ class Funstuff:
 
     @tag.command(name='owner', pass_context=True)
     async def _owner(self, ctx, tagname: str):
-        with open('discord.tags', 'rb+') as file:
+        with open("overrides.tags", "rb+") as file:
             found = False
-            lines = file.readlines()
-            file.seek(0)
-            for line in lines:
+            for line in file:
                 aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
-                if tagname.lower() == tagnamef.lower():
+                if tagname.lower() == tagnamef.lower() and ctx.message.server.id == aid:
+                    await self.bot.say("Tag **{}** is owned by the server *{}*".format(tagname, ctx.message.server.name))
                     found = True
-                    owneruser = self.lookupid(aid).name
-                    await self.bot.say("Tag **{}** is owned by **{}**".format(tagnamef, owneruser))
                     break
             if not found:
-                await self.bot.say("That tag doesn't exist!")
+                with open('discord.tags', 'rb+') as file:
+                    found = False
+                    lines = file.readlines()
+                    file.seek(0)
+                    for line in lines:
+                        aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                        if tagname.lower() == tagnamef.lower():
+                            found = True
+                            owneruser = str(self.lookupid(aid))
+                            await self.bot.say("Tag **{}** is owned by **{}**".format(tagnamef, owneruser))
+                            break
+                    if not found:
+                        await self.bot.say("That tag doesn't exist!")
 
     @tag.command(name='raw', pass_context=True)
     async def _raw(self, ctx, tagname: str):
@@ -914,6 +940,89 @@ class Funstuff:
                     break
             if not found:
                 await self.bot.say("That tag doesn't exist!")
+
+    @tag.command(name='raw2', pass_context=True)
+    async def _raw2(self, ctx, tagname: str):
+        with open('discord.tags', 'rb+') as file:
+            found = False
+            lines = file.readlines()
+            file.seek(0)
+            for line in lines:
+                aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                if tagname.lower() == tagnamef.lower():
+                    found = True
+                    contentf = contentf.replace('\u2E6E', '\n')
+                    await self.bot.say('```' + contentf + '```')
+                    break
+            if not found:
+                await self.bot.say("That tag doesn't exist!")
+
+    @tag.command(name='search', pass_context=True)
+    async def _search(self, ctx, search: str=None):
+        with open('discord.tags', 'rb+') as file:
+            lines = file.readlines()
+            file.seek(0)
+            listoftags = []
+            if search is None:
+                buf = BytesIO()
+                for line in lines:
+                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    listoftags.append(tagnamef)
+                buf.write("{} tags:\n{}".format(len(listoftags), " ".join(listoftags)).encode('utf-8'))
+                buf.seek(0)
+                await self.bot.upload(buf, filename="Search.txt", content="__**{}** tags found__".format(len(listoftags)))
+            else:
+                for line in lines:
+                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    if search.lower() in tagnamef.lower():
+                        listoftags.append(tagnamef)
+                if not listoftags:
+                    await self.bot.say("No tags containing **{}**".format(search))
+                else:
+                    await self.bot.say("__**{}** tags found containing **{}**:__\n{}".format(len(listoftags), search, " ".join(listoftags)))
+
+    @tag.command(name='override', pass_context=True)
+    @checks.mod_or_permissions()
+    async def _override(self, ctx, name, *, content = None):
+        async def edittag(name, content):
+            f = open("overrides.tags", "rb+")
+            d = f.readlines()
+            f.seek(0)
+            for i in d:
+                aid, tagnamef, contentf = i.decode('utf8').split('\u2E6F')
+                if ctx.message.server.id == aid and tagnamef.lower() == name.lower():
+                    if content is None:
+                        await self.bot.say("Successfully removed the override for the tag **{}**".format(tagnamef))
+                        continue
+                    else:
+                        content = content.replace('\n', '\u2E6E')
+                        f.write('{}\u2E6F{}\u2E6F{}\n'.format(
+                            aid, tagnamef, content).encode('utf8'))
+                        await self.bot.say("Successfully edited the override for the tag **{}**".format(tagnamef))
+                else:
+                    f.write(i)
+            f.truncate()
+            f.close()
+
+        with open('overrides.tags', 'rb+') as file:
+            found = False
+            lines = file.readlines()
+            file.seek(0)
+            for line in lines:
+                aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                if ctx.message.server.id == aid and tagnamef.lower() == name.lower():
+                    found = True
+                    await edittag(name, content)
+                    break
+            if not found:
+                if content is None:
+                    await self.bot.say("I can't delete a tag override for a override that doesnt exist!".format(name))
+                else:
+                    with open('overrides.tags', 'ab') as file:
+                        content = content.replace('\n', '\u2E6E')
+                        file.write('{}\u2E6F{}\u2E6F{}\n'.format(
+                            ctx.message.server.id, name, content).encode('utf8'))
+                        await self.bot.say("Successfully overridden tag **{}**".format(name))         
 
     @commands.command()
     async def hello(self):
@@ -946,12 +1055,12 @@ class Funstuff:
         if who_to_glomp is not None:
             toglomp = who_to_glomp
             if toglomp is not None:
-                await self.bot.say('*{} glomps {}*'.format(ctx.message.author.name, toglomp.name))
+                await self.bot.say('*{} glomps {}*'.format(ctx.message.author.name, toglomp))
             else:
                 await self.bot.say('*{} fell to the ground after trying to glomp someone that isnt there...*'.format(
                     ctx.message.author.name))
         else:
-            await self.bot.say('*{} glomps {}*'.format(client.user.name, ctx.message.author.name))
+            await self.bot.say('*{} glomps {}*'.format(self.bot.user.name, ctx.message.author.name))
 
     @commands.command()
     async def reverse(self, *, to_reverse: str):
@@ -1035,22 +1144,19 @@ class Funstuff:
         if ctx.invoked_subcommand is None:
             await self.bot.say('Use `&help lsg` to see the subcommands.')
 
-    initiating = {}
-
     @lsg.command(name='start', pass_context=True)
     async def _start(self, ctx):
         """Initiates a LSG game"""
-        global initiating
-        if initiating.get(ctx.message.server.id, True):
+        if self.initiating.get(ctx.message.server.id, True):
             await self.bot.say("There's already a LSG initiating, wait until that game is done and then you can make your own")
         else:
             playerlist = [ctx.message.author]
-            initiating[ctx.message.server.id] = True
+            self.initiating[ctx.message.server.id] = True
             while len(playerlist) != 4:
                 await self.bot.say("`[{}/4]`Alright, if you want to join this game, say `&yee`".format(len(playerlist)))
                 addmsg = await self.bot.wait_for_message(timeout=600, channel=ctx.message.channel, content='&yee', check=lambda m: m.author not in playerlist)
                 if addmsg is None:
-                    initiating[ctx.message.server.id] = False
+                    self.initiating[ctx.message.server.id] = False
                     await self.bot.say("Not enough players to start! Stopping initializing...")
                     return
                 else:
@@ -1079,7 +1185,7 @@ class Funstuff:
                         cutoff = True
                 if cutoff:
                     await self.bot.say("Someone did not confirm! Exiting initiation...")
-                    initiating[ctx.message.server.id] = False
+                    self.initiating[ctx.message.server.id] = False
                 else:
                     userlist = []
                     for m in playerlist:
@@ -1089,24 +1195,23 @@ class Funstuff:
                         game = LsgGame(self.bot, userlist, ctx.message.channel)
                         currentgames.append(game)
                     await self.bot.say("Created the game! Game should start in 5 seconds...")
-                    initiating = False
+                    self.initiating = False
                     await asyncio.sleep(5)
                     await game.startgame()
 
     @lsg.command(name='test', pass_context=True)
     async def _test(self, ctx):
         """Initiates a 2 player LSG game, mostly used for testing."""
-        global initiating
-        if initiating.get(ctx.message.server.id):
+        if self.initiating.get(ctx.message.server.id):
             await self.bot.say("There's already a LSG initiating, wait untill that game is done and then you can make your own")
         else:
             playerlist = [ctx.message.author]
-            initiating[ctx.message.server.id] = True
+            self.initiating[ctx.message.server.id] = True
             while len(playerlist) != 2:
                 await self.bot.say("`[{}/2]`Alright, if you want to join this game, say `&yee`".format(len(playerlist)))
                 addmsg = await self.bot.wait_for_message(timeout=600, channel=ctx.message.channel, content='&yee', check=lambda m: m.author not in playerlist)
                 if addmsg is None:
-                    initiating[ctx.message.server.id] = False
+                    self.initiating[ctx.message.server.id] = False
                     await self.bot.say("Not enough players to start! Stopping initializing...")
                     return
                 else:
@@ -1135,7 +1240,7 @@ class Funstuff:
                         cutoff = True
                 if cutoff:
                     await self.bot.say("Someone did not confirm! Exiting initiation...")
-                    initiating[ctx.message.server.id] = False
+                    self.initiating[ctx.message.server.id] = False
                 else:
                     userlist = []
                     for m in playerlist:
@@ -1145,7 +1250,7 @@ class Funstuff:
                         game = LsgGame(self.bot, userlist, ctx.message.channel)
                         currentgames.append(game)
                     await self.bot.say("Created the game! Game should start in 5 seconds...")
-                    initiating[ctx.message.server.id] = False
+                    self.initiating[ctx.message.server.id] = False
                     await asyncio.sleep(5)
                     await game.startgame()
 
@@ -1211,15 +1316,15 @@ class Funstuff:
         """Joins/creates a call-line between channels"""
         call_line = call_line.lower()
         if call_line == 'random':
-            if len(call_lines) != 0:
-                findcall = random.choice(list(call_lines))
-                await call_lines[findcall].addChannel(ctx.message.channel)
+            if len(self.call_lines) != 0:
+                findcall = random.choice(list(self.call_lines))
+                await self.call_lines[findcall].addChannel(ctx.message.channel)
             else:
                 await self.bot.say("There are no call-lines open! You can make your own call-line with `&call join <name>`")
         else:
-            findcall = call_lines.get(call_line)
+            findcall = self.call_lines.get(call_line)
             if findcall is None:
-                call_lines[call_line] = CallLine(
+                self.call_lines[call_line] = CallLine(
                     self.bot, ctx.message, call_line)
                 await self.bot.say("Connected to call-line `{}`".format(call_line))
             else:
@@ -1229,7 +1334,7 @@ class Funstuff:
     async def _disc(self, ctx, *, call_line: str):
         """Disconnects from a call-line"""
         call_line = call_line.lower()
-        findcall = call_lines.get(call_line)
+        findcall = self.call_lines.get(call_line)
         if findcall is None:
             await self.bot.say("There is no call-line called `{}`".format(call_line))
         else:
@@ -1239,8 +1344,8 @@ class Funstuff:
     async def _calllist(self):
         """Returns a list of current call-lines"""
         fmt = "__Current call-lines:__\nYou can make your own call-line with `&call join <name>`\n"
-        if len(call_lines) != 0:
-            for name, line in call_lines.items():
+        if len(self.call_lines) != 0:
+            for name, line in self.call_lines.items():
                 fmt += '`{0}` - **{1}** channels connected\n'.format(
                     name, len(line.channels))
         else:

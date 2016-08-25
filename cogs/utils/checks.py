@@ -36,12 +36,14 @@ def role_or_permissions(ctx, check, **perms):
 
 def mod_or_permissions(**perms):
     def predicate(ctx):
-        return role_or_permissions(ctx, lambda r: r.name in ('Luna Mod', 'Luna Admin'), **perms)
+        return role_or_permissions(ctx, lambda r: r.name in ('Luna Mod', 'Luna Admin', 'Bot Commander', 'La Veuve'), **perms)
 
     return commands.check(predicate)
 
 
 def admin_or_permissions(**perms):
     def predicate(ctx):
-        return role_or_permissions(ctx, lambda r: r.name == 'Luna Admin', **perms)
+        return role_or_permissions(ctx, lambda r: r.name in ('Luna Admin', 'La Veuve'), **perms)
     return commands.check(predicate)
+
+# These two roles are for a specific server, just use 'Luna mod' and 'Luna admin'

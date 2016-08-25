@@ -143,6 +143,7 @@ class VoiceState:
     async def audio_player_task(self):
         while True:
             self.play_next_song.clear()
+            self.skip_votes.clear()
             self.empty = self.songs.empty()
             self.current = await self.songs.get()
             self.songs._queue = self.sortclumps(self.songs._queue, 2, deque())
@@ -168,7 +169,7 @@ class Music:
 
         return state
 
-    async def create_voice_bot(self, channel):
+    async def create_voice_client(self, channel):
         voice = await self.bot.join_voice_channel(channel)
         state = self.get_voice_state(channel.server)
         state.voice = voice
@@ -195,7 +196,7 @@ class Music:
     async def join(self, *, channel: discord.Channel):
         """Joins a voice channel."""
         try:
-            await self.bot.create_voice_bot(channel)
+            await self.bot.create_voice_client(channel)
         except discord.InvalidArgument:
             await self.bot.say('This is not a voice channel...')
         except discord.ClientException:

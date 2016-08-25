@@ -3,6 +3,7 @@ from discord.ext import commands
 import urbandictionary as ud
 import re
 import textwrap
+import random
 import urllib.request as request
 from bs4 import BeautifulSoup as bs
 
@@ -64,7 +65,7 @@ class Searches:
             await self.bot.say('Sorry I could not find any results containing the name `{}`'.format(errorthing))
 
     @commands.command()
-    async def fanficton(self, *, fanfucksearch: str):
+    async def fanfiction(self, *, fanfucksearch: str):
         """Searches the shittiest and weirdest fanfics on fanfiction.net"""
         search = fanfucksearch.split()
         thing = "+".join(search)
