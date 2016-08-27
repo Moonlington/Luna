@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import urbandictionary as ud
 import re
-import textwrap
 import random
 import urllib.request as request
 from bs4 import BeautifulSoup as bs
@@ -20,18 +19,13 @@ class Searches:
     @commands.command()
     async def define(self, *, to_define: str):
         """Using Urban Dictionary, define stuff."""
-        yee = to_define
-        defs = ud.define(yee)
+        to_define
+        defs = ud.define(to_define)
         try:
-            defssplit = re.split(r'\r\n\r\n', defs[0].definition)
-            text = ''
-            for y in defssplit:
-                text += y + '\n'
-            textwrapped = textwrap.wrap(text, 2000)
-            await self.bot.say('**' + yee.capitalize() + ':**')
-            for piece in textwrapped:
-                await self.bot.say(piece)
-            await self.bot.say('**Example:**\n' + defs[0].example)
+            tosend = '__**' + defs[0].word + ':**__\n'
+            tosend += defs[0].definition + '\n\n'
+            tosend += '**Example:**\n' + defs[0].example
+            await self.bot.say(tosend)
         except IndexError:
             await self.bot.say('**Error:** Definition not found')
 

@@ -49,6 +49,7 @@ class Botrelated:
     @commands.command()
     @checks.is_owner()
     async def cls(self):
+        """Clears the console."""
         os.system("cls")
         await self.bot.say("Cleared console.")
 

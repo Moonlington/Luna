@@ -18,7 +18,8 @@ initial_extensions = [
     'cogs.Members',
     'cogs.Music',
     'cogs.Searches',
-    'cogs.Botrelated'
+    'cogs.Botrelated',
+    'cogs.Mods'
 ]
 
 botdesc = '''Luna is a simple bot made by Floretta for fun ¯\_(ツ)_/¯'''
@@ -34,6 +35,31 @@ prefix = ['&']
 
 bot = commands.Bot(command_prefix=prefix, description=botdesc, pm_help=None)
 
+bot.oldsay = bot.say
+
+async def say(content):
+    def SplitContent(content):
+        content = content.replace("@everyone", "@\u200Beveryone").replace("@here", "@\u200Bhere").strip()
+        msgs = []
+        while len(content) > 2000:
+            leeway = 2000 - (len(content) % 2000)
+            index = content.rfind("\n", 0, 2000)
+            if index < leeway:
+                index = content.rfind(" ", 0, 2000)
+            if index < leeway:
+                index = 2000
+            temp = content[0:index].strip()
+            if temp != "":
+                msgs.append(temp)
+            content = content[index:].strip()
+        if content != "":
+            msgs.append(content)
+        return msgs
+    for msg in SplitContent(content):
+        messagesent = await bot.oldsay(msg)
+    return messagesent
+
+bot.say = say
 
 @bot.event
 async def on_command_error(error, ctx):

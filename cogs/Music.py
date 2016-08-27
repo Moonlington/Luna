@@ -153,9 +153,9 @@ class VoiceState:
                 out = await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.currenttime = datetime.datetime.now()
             self.currentplayer.start()
-            await asyncio.sleep(5)
             if out:
                 try:
+                    await asyncio.sleep(10)
                     await self.bot.delete_message(out)
                 except:
                     pass
@@ -314,6 +314,7 @@ class Music:
             await entry.getInfo()
             if not state.is_playing():
                 out = await self.bot.say('Enqueued and now playing ' + str(entry))
+                await state.songs.put(entry)
                 await asyncio.sleep(5)
                 try:
                     await self.bot.delete_messages([ctx.message, out])
@@ -321,12 +322,12 @@ class Music:
                     pass
             else:
                 out = await self.bot.say('Enqueued ' + str(entry))
+                await state.songs.put(entry)
                 await asyncio.sleep(5)
                 try:
                     await self.bot.delete_messages([ctx.message, out])
                 except:
                     pass
-            await state.songs.put(entry)
 
     @music.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value: int):
@@ -443,7 +444,7 @@ class Music:
             t2 = datetime.datetime.now()
             duration = (t2 - t1).total_seconds()
             out = await self.bot.say(
-                'Now playing {0} [skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
+                'Now playing {0} `[skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]`'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
             await asyncio.sleep(5)
             try:
                 await self.bot.delete_messages([ctx.message, out])
@@ -467,14 +468,16 @@ class Music:
         else:
             counter = 1
             totalduration = 0
-            send = '__Found queue of **{1}** for **{0}**__\n'.format(
+            send = 'Found queue of **{1}** for **{0}**\n'.format(
                 ctx.message.server.name, len(entries))
             for entry in entries[:10]:
                 requester = entry.requester
                 player = entry
-                send += '[{0[0]}m {0[1]}s] {1}. **{2}** requested by **{3}**\n'.format(
+                send += '`[{0[0]}m {0[1]}s]` {1}. **{2}** requested by **{3}**\n'.format(
                     divmod(player.duration, 60), counter, player.title, requester.display_name)
                 counter += 1
+            if len(entries) > 10:
+                send += 'And {} more...\n'.format(str(len(entries) - 10))
             for entry in entries:
                 player = entry
                 totalduration += player.duration
