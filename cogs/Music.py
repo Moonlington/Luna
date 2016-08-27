@@ -7,6 +7,7 @@ import datetime
 import math
 from collections import deque
 
+
 def setup(bot):
     bot.add_cog(Music(bot))
 
@@ -97,12 +98,13 @@ class VoiceState:
         return self.currentplayer
 
     def sortclumps(self, l, n, queue=[]):
-        def safe_list_get (l, idx, default):
+        def safe_list_get(l, idx, default):
             try:
                 return l[idx]
             except IndexError:
                 l.append(default)
                 return default
+
         def nextclump(ind, i):
             ind += 1
             try:
@@ -431,7 +433,6 @@ class Music:
             except:
                 pass
 
-
     @music.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
         """Shows info about the currently played song."""
@@ -450,7 +451,6 @@ class Music:
                 await self.bot.delete_messages([ctx.message, out])
             except:
                 pass
-
 
     @music.command(name='list', pass_context=True, no_pm=True)
     async def _list(self, ctx):
@@ -489,4 +489,3 @@ class Music:
                 await self.bot.delete_messages([ctx.message, out])
             except:
                 pass
-

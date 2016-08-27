@@ -5,6 +5,7 @@ import datetime
 import os
 import asyncio
 
+
 def setup(bot):
     bot.add_cog(Botrelated(bot))
 
@@ -25,7 +26,6 @@ class Botrelated:
             return
         await self.bot.say("{} loaded.".format(extension_name))
 
-
     @commands.command()
     @checks.is_owner()
     async def reload(self, extension_name: str):
@@ -37,7 +37,6 @@ class Botrelated:
             await self.bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
             return
         await self.bot.say("{} reloaded.".format(extension_name))
-
 
     @commands.command()
     @checks.is_owner()
@@ -59,7 +58,6 @@ class Botrelated:
         await self.bot.say(
             'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
             'https://discordapp.com/oauth2/authorize?&client_id={}&scope=bot&permissions=-1\n'.format(self.bot.bot_id))
-
 
     @commands.command()
     async def botabout(self):
@@ -85,7 +83,6 @@ Visible Channels: {3}
 Visible Users: {4}'''
         await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter))
 
-
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
     async def say(self, ctx, *, text: str):
@@ -94,7 +91,6 @@ Visible Users: {4}'''
             await self.bot.say(text)
         except:
             await self.bot.say(text)
-
 
     @commands.command(pass_context=True, hidden=True, name='eval')
     @checks.is_owner()
@@ -113,7 +109,6 @@ Visible Users: {4}'''
 
         await self.bot.say(python.format(result))
 
-
     @commands.command(pass_context=True, hidden=True, name='run')
     @checks.is_owner()
     async def debug2(self, ctx, *, code: str):
@@ -130,7 +125,6 @@ Visible Users: {4}'''
             result = await result
 
         await self.bot.say(python.format(result))
-
 
     @commands.command(pass_context=True, hidden=True)
     @checks.is_owner()
@@ -151,12 +145,13 @@ Visible Users: {4}'''
         msg = ctx.message
 
         repl_locals = {}
-        repl_globals = {'ctx': ctx, 'bot': self.bot, 'message': msg, 'last': None}
+        repl_globals = {'ctx': ctx, 'bot': self.bot,
+                        'message': msg, 'last': None}
 
         await self.bot.say('Enter code to execute or evaluate. `exit()` or `quit` to exit.')
         while True:
             response = await self.bot.wait_for_message(author=msg.author, channel=msg.channel,
-                                                     check=lambda m: m.content.startswith('`'))
+                                                       check=lambda m: m.content.startswith('`'))
 
             cleaned = cleanup_code(response.content)
 

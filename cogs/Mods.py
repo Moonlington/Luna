@@ -5,10 +5,13 @@ import asyncio
 import string
 import re
 
+
 def setup(bot):
     bot.add_cog(Mods(bot))
 
+
 class Mods:
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -46,7 +49,6 @@ class Mods:
         if startswith:
             return list(startswith)
         return list(contains)
-
 
     def findUsers(self, query, server):
         mentionregex = "<@!?(\d+)>"

@@ -46,4 +46,5 @@ def admin_or_permissions(**perms):
         return role_or_permissions(ctx, lambda r: r.name in ('Luna Admin', 'Master Assassin'), **perms)
     return commands.check(predicate)
 
-# These two roles are for a specific server, just use 'Luna mod' and 'Luna admin'
+# These two roles are for a specific server, just use 'Luna mod' and 'Luna
+# admin'

@@ -39,7 +39,8 @@ bot.oldsay = bot.say
 
 async def say(content):
     def SplitContent(content):
-        content = content.replace("@everyone", "@\u200Beveryone").replace("@here", "@\u200Bhere").strip()
+        content = content.replace("@everyone", "@\u200Beveryone").replace(
+            "@here", "@\u200Bhere").strip()
         msgs = []
         while len(content) > 2000:
             leeway = 2000 - (len(content) % 2000)
@@ -60,6 +61,7 @@ async def say(content):
     return messagesent
 
 bot.say = say
+
 
 @bot.event
 async def on_command_error(error, ctx):
@@ -137,6 +139,7 @@ async def on_command(command, ctx):
 def load_credentials():
     with open('credentials.json') as f:
         return json.load(f)
+
 
 def PrintException():
     exc_type, exc_obj, tb = sys.exc_info()

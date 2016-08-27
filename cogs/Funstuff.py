@@ -484,7 +484,6 @@ class Funstuff:
             return list(startswith)
         return list(contains)
 
-
     def findUsers(self, query, server):
         mentionregex = "<@!?(\d+)>"
         userid = ''
@@ -521,11 +520,9 @@ class Funstuff:
             return list(startswith)
         return list(contains)
 
-
     def lookupid(self, _id):
         user = discord.utils.get(self.bot.get_all_members(), id=_id)
         return user
-
 
     @commands.group(aliases=['t'], pass_context=True, invoke_without_command=True)
     async def tag(self, ctx, tagcalled: str=None, *args):
@@ -544,30 +541,29 @@ class Funstuff:
                 if index == -1:
                     return False
                 s1 = statement[0:index]
-                s2 = statement[index+3:]
+                s2 = statement[index + 3:]
                 try:
                     i1 = float(s1)
                     i2 = float(s2)
-                    if statement[index:index+3] == "|=|":
+                    if statement[index:index + 3] == "|=|":
                         return i1 == i2
-                    elif statement[index:index+3] == "|~|":
-                        return i1*100 == i2*100
-                    elif statement[index:index+3] == "|>|":
+                    elif statement[index:index + 3] == "|~|":
+                        return i1 * 100 == i2 * 100
+                    elif statement[index:index + 3] == "|>|":
                         return i1 > i2
-                    elif statement[index:index+3] == "|<|":
+                    elif statement[index:index + 3] == "|<|":
                         return i1 < i2
                 except ValueError:
-                    if statement[index:index+3] == "|=|":
+                    if statement[index:index + 3] == "|=|":
                         return s1 == s2
-                    elif statement[index:index+3] == "|~|":
+                    elif statement[index:index + 3] == "|~|":
                         return s1.lower() == s2.lower()
-                    elif statement[index:index+3] == "|>|":
+                    elif statement[index:index + 3] == "|>|":
                         return s1 > s2
-                    elif statement[index:index+3] == "|<|":
+                    elif statement[index:index + 3] == "|<|":
                         return s1 < s2
-                    elif statement[index:index+3] == "|?|":
+                    elif statement[index:index + 3] == "|?|":
                         return bool(re.search(s2, s1))
-
 
             def evaluateMath(statement):
                 index = statement.find('|+|')
@@ -582,39 +578,39 @@ class Funstuff:
                 if index == -1:
                     return statement
                 s1 = evaluateMath(statement[0:index])
-                s2 = evaluateMath(statement[index+3:])
+                s2 = evaluateMath(statement[index + 3:])
                 try:
                     i1 = float(s1)
                     i2 = float(s2)
                     print(i1, i2)
-                    if statement[index:index+3] == "|+|":
-                        return str(i1+i2)
-                    elif statement[index:index+3] == "|-|":
-                        return str(i1-i2)
-                    elif statement[index:index+3] == "|*|":
-                        return str(i1*i2)
-                    elif statement[index:index+3] == "|%|":
-                        return str(i1%i2)
-                    elif statement[index:index+3] == "|/|":
-                        return str(i1/i2)
+                    if statement[index:index + 3] == "|+|":
+                        return str(i1 + i2)
+                    elif statement[index:index + 3] == "|-|":
+                        return str(i1 - i2)
+                    elif statement[index:index + 3] == "|*|":
+                        return str(i1 * i2)
+                    elif statement[index:index + 3] == "|%|":
+                        return str(i1 % i2)
+                    elif statement[index:index + 3] == "|/|":
+                        return str(i1 / i2)
                 except ValueError:
-                    if statement[index:index+3] == "|+|":
+                    if statement[index:index + 3] == "|+|":
                         return s1 + s2
-                    elif statement[index:index+3] == "|-|":
+                    elif statement[index:index + 3] == "|-|":
                         loc = s1.find(s2)
                         if loc != -1:
-                            return s1[0:loc]+(s1[loc+len(s2)] if loc+len(s2)<len(s1) else "")
+                            return s1[0:loc] + (s1[loc + len(s2)] if loc + len(s2) < len(s1) else "")
                         else:
-                            return s1+'-'+s2
-                    elif statement[index:index+3] == "|*|":
-                        return s1+'*'+s2
-                    elif statement[index:index+3] == "|%|":
-                        return s1+'%'+s2
-                    elif statement[index:index+3] == "|/|":
-                        return s1+'/'+s2
+                            return s1 + '-' + s2
+                    elif statement[index:index + 3] == "|*|":
+                        return s1 + '*' + s2
+                    elif statement[index:index + 3] == "|%|":
+                        return s1 + '%' + s2
+                    elif statement[index:index + 3] == "|/|":
+                        return s1 + '/' + s2
 
-
-            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.server is not None else "Direct Message").replace("{channelid}", ctx.message.channel.id if ctx.message.server is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name if ctx.message.server is not None else "Direct Message").replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
+            content = content.replace("{user}", ctx.message.author.name).replace("{userid}", ctx.message.author.id).replace("{nick}", ctx.message.author.display_name).replace("{discrim}", str(ctx.message.author.discriminator)).replace("{server}", ctx.message.server.name if ctx.message.server is not None else "Direct Message").replace("{serverid}", ctx.message.server.id if ctx.message.server is not None else "0").replace("{servercount}", str(len(ctx.message.server.members)) if ctx.message.server is not None else "1").replace("{channel}", ctx.message.channel.name if ctx.message.server is not None else "Direct Message").replace(
+                "{channelid}", ctx.message.channel.id if ctx.message.server is not None else "0").replace("{randuser}", random.choice(list(ctx.message.server.members)).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randonline}", random.choice([m for m in ctx.message.server.members if m.status is discord.Status.online]).display_name if ctx.message.server is not None else ctx.message.author.display_name).replace("{randchannel}", random.choice(list(ctx.message.server.channels)).name if ctx.message.server is not None else "Direct Message").replace("{args}", " ".join(args)).replace("{argslen}", str(len(args))).replace('{avatar}', ctx.message.author.avatar_url)
             output = content
             toEval = ""
             iterations = 0
@@ -626,7 +622,7 @@ class Funstuff:
                 i1 = output.find("}")
                 i2 = -1 if i1 == -1 else output.rfind("{", 0, i1)
                 if i1 != -1 and i2 != -1:
-                    toEval = output[i2+1:i1]
+                    toEval = output[i2 + 1:i1]
                     if toEval.startswith('length:'):
                         toEval = str(len(toEval[7:]))
 
@@ -636,7 +632,8 @@ class Funstuff:
                             if not args:
                                 toEval = ""
                             else:
-                                toEval = next(islice(cycle(args), argget, argget+1))
+                                toEval = next(
+                                    islice(cycle(args), argget, argget + 1))
                         except ValueError:
                             pass
 
@@ -650,8 +647,8 @@ class Funstuff:
                         index2 = toEval.find('|else:', index1)
                         if index1 != -1 and index2 != -1:
                             statement = toEval[3:index1]
-                            sthen = toEval[index1+6:index2]
-                            selse = toEval[index2+6:]
+                            sthen = toEval[index1 + 6:index2]
+                            selse = toEval[index2 + 6:]
                             if evaluateStatement(statement):
                                 toEval = sthen
                             else:
@@ -677,18 +674,19 @@ class Funstuff:
 
                         if index1 != -1 and index2 != -1:
                             rep = toEval[13:index1]
-                            rwith = toEval[index1+6:index2]
-                            rin = toEval[index2+4:]
+                            rwith = toEval[index1 + 6:index2]
+                            rin = toEval[index2 + 4:]
                             if len(rep) > 0:
-                                toEval = re.sub(rep.replace("\u0013","{").replace("\u0014","}"), re.sub("\$(\d+)", "\\\1", rwith), rin)
+                                toEval = re.sub(rep.replace("\u0013", "{").replace(
+                                    "\u0014", "}"), re.sub("\$(\d+)", "\\\1", rwith), rin)
 
                     elif toEval.startswith('replace:'):
                         index1 = toEval.find('|with:')
                         index2 = toEval.find('|in:', index1)
                         if index1 != -1 and index2 != -1:
                             rep = toEval[8:index1]
-                            rwith = toEval[index1+6:index2]
-                            rin = toEval[index2+4:]
+                            rwith = toEval[index1 + 6:index2]
+                            rin = toEval[index2 + 4:]
                             if len(rep) > 0:
                                 toEval = rin.replace(rep, rwith)
 
@@ -708,17 +706,20 @@ class Funstuff:
                         else:
                             users = None
                             if ctx.message.server is not None:
-                                users = self.findUsers(query, ctx.message.server)
+                                users = self.findUsers(
+                                    query, ctx.message.server)
                             if users is None or not users:
                                 users = self.findUserseverywhere(query)
                             if not users:
                                 return '⚠ No users found matching "{}"'.format(query)
                             elif len(users) > 1:
-                                out = '⚠ Multiple users found matching "{}":'.format(query)
+                                out = '⚠ Multiple users found matching "{}":'.format(
+                                    query)
                                 for u in users[:6]:
                                     out += "\n - {}".format(str(u))
                                 if len(users) > 6:
-                                    out += "\n And {} more...".format(str(len(users) - 6))
+                                    out += "\n And {} more...".format(
+                                        str(len(users) - 6))
                                 return out
 
                             toEval = users[0].name
@@ -730,23 +731,27 @@ class Funstuff:
                         else:
                             users = None
                             if ctx.message.server is not None:
-                                users = self.findUsers(query, ctx.message.server)
+                                users = self.findUsers(
+                                    query, ctx.message.server)
                             if users is None or not users:
                                 users = self.findUserseverywhere(query)
                             if not users:
                                 return '⚠ No users found matching "{}"'.format(query)
                             elif len(users) > 1:
-                                out = '⚠ Multiple users found matching "{}":'.format(query)
+                                out = '⚠ Multiple users found matching "{}":'.format(
+                                    query)
                                 for u in users[:6]:
                                     out += "\n - {}".format(str(u))
                                 if len(users) > 6:
-                                    out += "\n And {} more...".format(str(len(users) - 6))
+                                    out += "\n And {} more...".format(
+                                        str(len(users) - 6))
                                 return out
 
                             toEval = users[0].display_name
 
                     elif toEval.startswith('url:'):
-                        toEval = toEval[4:].replace('-', '--').replace('_', "__").replace('%', '~p').replace('?', '~q').replace(" ", "_")
+                        toEval = toEval[4:].replace(
+                            '-', '--').replace('_', "__").replace('%', '~p').replace('?', '~q').replace(" ", "_")
 
                     elif toEval.startswith('math:'):
                         toEval = evaluateMath(toEval[5:])
@@ -757,9 +762,8 @@ class Funstuff:
                     else:
                         toEval = "\u0013" + toEval + "\u0014"
 
-                    output = output[0:i2] + toEval + output[i1+1:]
-            return output.replace("\u0013","{").replace("\u0014","}")
-
+                    output = output[0:i2] + toEval + output[i1 + 1:]
+            return output.replace("\u0013", "{").replace("\u0014", "}")
 
         if tagcalled is None:
             await self.bot.say("Use `&help tag` for the subcommands.")
@@ -776,7 +780,8 @@ class Funstuff:
                 with open('discord.tags', 'rb+') as file:
                     found = False
                     for line in file:
-                        aid, tagname, content = line.decode('utf8').split('\u2E6F')
+                        aid, tagname, content = line.decode(
+                            'utf8').split('\u2E6F')
                         if tagcalled.lower() == tagname.lower():
                             content = content.replace('\u2E6E', '\n')
                             await self.bot.say(jagtagparser(content, args))
@@ -916,7 +921,8 @@ class Funstuff:
                     lines = file.readlines()
                     file.seek(0)
                     for line in lines:
-                        aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                        aid, tagnamef, contentf = line.decode(
+                            'utf8').split('\u2E6F')
                         if tagname.lower() == tagnamef.lower():
                             found = True
                             owneruser = str(self.lookupid(aid))
@@ -966,14 +972,17 @@ class Funstuff:
             if search is None:
                 buf = BytesIO()
                 for line in lines:
-                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    aid, tagnamef, contentf = line.decode(
+                        'utf8').split('\u2E6F')
                     listoftags.append(tagnamef)
-                buf.write("{} tags:\n{}".format(len(listoftags), " ".join(listoftags)).encode('utf-8'))
+                buf.write("{} tags:\n{}".format(len(listoftags),
+                                                " ".join(listoftags)).encode('utf-8'))
                 buf.seek(0)
                 await self.bot.upload(buf, filename="Search.txt", content="__**{}** tags found__".format(len(listoftags)))
             else:
                 for line in lines:
-                    aid, tagnamef, contentf = line.decode('utf8').split('\u2E6F')
+                    aid, tagnamef, contentf = line.decode(
+                        'utf8').split('\u2E6F')
                     if search.lower() in tagnamef.lower():
                         listoftags.append(tagnamef)
                 if not listoftags:
@@ -983,7 +992,7 @@ class Funstuff:
 
     @tag.command(name='override', pass_context=True)
     @checks.mod_or_permissions()
-    async def _override(self, ctx, name, *, content = None):
+    async def _override(self, ctx, name, *, content=None):
         async def edittag(name, content):
             f = open("overrides.tags", "rb+")
             d = f.readlines()
@@ -1022,7 +1031,7 @@ class Funstuff:
                         content = content.replace('\n', '\u2E6E')
                         file.write('{}\u2E6F{}\u2E6F{}\n'.format(
                             ctx.message.server.id, name, content).encode('utf8'))
-                        await self.bot.say("Successfully overridden tag **{}**".format(name))         
+                        await self.bot.say("Successfully overridden tag **{}**".format(name))
 
     @commands.command()
     async def hello(self):
