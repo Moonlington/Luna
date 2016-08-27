@@ -381,7 +381,7 @@ class Music:
     @music.command(pass_context=True, no_pm=True)
     async def skip(self, ctx):
         """Vote to skip a song. The song requester can automatically skip.
-        3 skip votes are needed for the song to be skipped.
+        Majority vote is needed for the song to be skipped.
         """
         state = self.get_voice_state(ctx.message.server)
         if not state.is_playing():
@@ -406,7 +406,7 @@ class Music:
         elif voter.id not in state.skip_votes:
             state.skip_votes.add(voter.id)
             total_votes = len(state.skip_votes)
-            if total_votes >= 3:
+            if total_votes >= math.ceil((len(ctx.message.server.me.voice_channel.voice_members) - 1) / 2):
                 out = await self.bot.say('Skip vote passed, skipping song...')
                 state.skip()
                 await asyncio.sleep(5)
@@ -416,7 +416,7 @@ class Music:
                     pass
 
             else:
-                out = await self.bot.say('Skip vote added, currently at [{}/3]'.format(total_votes))
+                out = await self.bot.say('Skip vote added, currently at [{}/{}]'.format(total_votes, math.ceil((len(ctx.message.server.me.voice_channel.voice_members) - 1) / 2)))
                 await asyncio.sleep(5)
                 try:
                     await self.bot.delete_messages([ctx.message, out])
@@ -444,7 +444,7 @@ class Music:
             t2 = datetime.datetime.now()
             duration = (t2 - t1).total_seconds()
             out = await self.bot.say(
-                'Now playing {0} `[skips: {1}/3] [{2[0]}m {2[1]}s/{3[0]}m {3[1]}s]`'.format(state.current, skip_count, divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
+                'Now playing {0} `[skips: {1}/{2}] [{3[0]}m {3[1]}s/{4[0]}m {4[1]}s]`'.format(state.current, skip_count, math.ceil((len(ctx.message.server.me.voice_channel.voice_members) - 1) / 2), divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
             await asyncio.sleep(5)
             try:
                 await self.bot.delete_messages([ctx.message, out])

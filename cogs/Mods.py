@@ -3,6 +3,7 @@ from discord.ext import commands
 from cogs.utils import checks
 import asyncio
 import string
+import re
 
 def setup(bot):
     bot.add_cog(Mods(bot))
@@ -85,15 +86,15 @@ class Mods:
 
     @commands.group(pass_context=True, invoke_without_command=True)
     @checks.mod_or_permissions(manage_messages=True)
-    async def clean(self, ctx, amount: int):
+    async def clear(self, ctx, amount: int):
         """Chat clearing commands."""
         messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message)
         await self.bot.delete_message(ctx.message)
-        send = await self.bot.say("Successfully cleaned **{}** messages".format(len(messages)))
+        send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
         await asyncio.sleep(3)
         await self.bot.delete_message(send)
 
-    @clean.command(name="bots", pass_context=True)
+    @clear.command(name="bots", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def _bots(self, ctx, amount: int=100):
         """Clears bots and bot calls."""
@@ -108,13 +109,13 @@ class Mods:
             return False
         messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=check)
         await self.bot.delete_message(ctx.message)
-        send = await self.bot.say("Successfully cleaned **{}** messages".format(len(messages)))
+        send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
         await asyncio.sleep(3)
         await self.bot.delete_message(send)
 
-    @clean.command(name="user", pass_context=True)
+    @clear.command(name="user", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
-    async def _user(self, ctx, who:str, amount: int=100):
+    async def _user(self, ctx, who: str, amount: int=100):
         """Clears posts by a specific user."""
         users = None
         if ctx.message.server is not None:
@@ -131,13 +132,13 @@ class Mods:
                 out += "\n And {} more...".format(str(len(users) - 6))
             await self.bot.say(out)
         else:
-            messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=lambda m: m == users[0])
+            messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=lambda m: m.author == users[0])
             await self.bot.delete_message(ctx.message)
-            send = await self.bot.say("Successfully cleaned **{}** messages".format(len(messages)))
+            send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
             await asyncio.sleep(3)
             await self.bot.delete_message(send)
 
-    @clean.command(name="images", pass_context=True)
+    @clear.command(name="images", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def _images(self, ctx, amount: int=100):
         """Only clears images."""
@@ -151,6 +152,6 @@ class Mods:
             return False
         messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=check)
         await self.bot.delete_message(ctx.message)
-        send = await self.bot.say("Successfully cleaned **{}** messages".format(len(messages)))
+        send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
         await asyncio.sleep(3)
         await self.bot.delete_message(send)
