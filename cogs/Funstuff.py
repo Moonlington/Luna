@@ -10,6 +10,8 @@ from textblob import TextBlob
 from io import BytesIO
 import re
 import asyncio
+import textblob
+import aiohttp
 from PIL import Image, ImageDraw, ImageFont
 
 if not os.path.exists('discord.tags'):
@@ -1377,3 +1379,10 @@ class Funstuff:
         await self.bot.upload(buf, filename='plot.png')
         buf.close()
         plt.close()
+
+    @commands.command(pass_context=True)
+    async def cats(self, ctx):
+        async with aiohttp.get('http://random.cat/meow') as r:
+            if r.status == 200:
+                js = await r.json()
+                await self.bot.say(js['file'])

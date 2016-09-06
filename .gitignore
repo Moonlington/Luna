@@ -2,3 +2,4 @@
 *.log
 *.tags
 __pycache__
+*.google-cookie

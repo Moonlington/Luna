@@ -3,6 +3,7 @@ from discord.ext import commands
 import urbandictionary as ud
 import re
 import random
+import google
 import urllib.request as request
 from bs4 import BeautifulSoup as bs
 

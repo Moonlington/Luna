@@ -19,6 +19,17 @@ class VoiceEntry:
         self.bot = bot
         self.channel = message.channel
         self.url = url
+        self.info = None
+        self.download_url = None
+        self.views = None
+        self.is_live = None
+        self.likes = None
+        self.dislikes = None
+        self.duration = None
+        self.uploader = None
+        self.title = None
+        self.description = None
+        self.upload_date = None
 
     async def getInfo(self):
         opts = {
@@ -157,7 +168,7 @@ class VoiceState:
             self.currentplayer.start()
             if out:
                 try:
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(15)
                     await self.bot.delete_message(out)
                 except:
                     pass
@@ -259,13 +270,6 @@ class Music:
         https://rg3.github.io/youtube-dl/supportedsites.html
         """
         state = self.get_voice_state(ctx.message.server)
-        opts = {
-            "format": 'webm[abr>0]/bestaudio/best',
-            "ignoreerrors": True,
-            "default_search": "ytsearch",
-            "source_address": "0.0.0.0",
-            'quiet': True}
-
         ytdl = youtube_dl.YoutubeDL({
             "format": 'best',
             "ignoreerrors": True,
@@ -435,7 +439,7 @@ class Music:
 
     @music.command(pass_context=True, no_pm=True)
     async def playing(self, ctx):
-        """Shows info about the currently played song."""
+        """Shows the currently played song."""
         state = self.get_voice_state(ctx.message.server)
         if state.current is None:
             await self.bot.say('Not playing anything.')
@@ -446,7 +450,7 @@ class Music:
             duration = (t2 - t1).total_seconds()
             out = await self.bot.say(
                 'Now playing {0} `[skips: {1}/{2}] [{3[0]}m {3[1]}s/{4[0]}m {4[1]}s]`'.format(state.current, skip_count, math.ceil((len(ctx.message.server.me.voice_channel.voice_members) - 1) / 2), divmod(math.floor(duration), 60), divmod(state.current.duration, 60)))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             try:
                 await self.bot.delete_messages([ctx.message, out])
             except:
@@ -459,7 +463,7 @@ class Music:
         entries = [x for x in state.songs._queue]
         if len(entries) == 0:
             out = await self.bot.say("There are currently no songs in the queue!")
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             try:
                 await self.bot.delete_messages([ctx.message, out])
             except:
@@ -484,7 +488,33 @@ class Music:
             send += 'Total duration: `[{0}]`'.format(
                 datetime.timedelta(seconds=totalduration))
             out = await self.bot.say(send)
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
+    @music.command(name="info", pass_context=True, no_pm=True)
+    async def _info(self, ctx):
+        """Shows info about the currently played song."""
+        state = self.get_voice_state(ctx.message.server)
+        if state.current is None:
+            await self.bot.say('Not playing anything.')
+        else:
+            skip_count = len(state.skip_votes)
+            t1 = state.currenttime
+            t2 = datetime.datetime.now()
+            duration = (t2 - t1).total_seconds()
+            send = """Currently played song: **{0.title}**
+Uploader: **{0.uploader}**
+Views: *{0.views}*
+Likes/Dislikes: *{0.likes}/{0.dislikes}*
+Upload date: **{0.upload_date}**
+Skips: `[skips: {1}/{2}]`
+Duration: `[{3[0]}m {3[1]}s/{4[0]}m {4[1]}s]`
+""".format(state.current, skip_count, math.ceil((len(ctx.message.server.me.voice_channel.voice_members) - 1) / 2), divmod(math.floor(duration), 60), divmod(state.current.duration, 60))
+            out = await self.bot.say(send)
+            await asyncio.sleep(10)
             try:
                 await self.bot.delete_messages([ctx.message, out])
             except:
