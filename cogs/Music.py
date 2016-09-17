@@ -341,6 +341,8 @@ class Music:
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
+            if value > 200:
+                value = 200
             player.volume = value / 100
             out = await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
             await asyncio.sleep(5)
@@ -476,15 +478,15 @@ class Music:
                 ctx.message.server.name, len(entries))
             for entry in entries[:10]:
                 requester = entry.requester
-                player = entry
                 send += '`[{0[0]}m {0[1]}s]` {1}. **{2}** requested by **{3}**\n'.format(
-                    divmod(player.duration, 60), counter, player.title, requester.display_name)
+                    divmod(entry.duration, 60), counter, entry.title, requester.display_name)
                 counter += 1
             if len(entries) > 10:
                 send += 'And {} more...\n'.format(str(len(entries) - 10))
             for entry in entries:
-                player = entry
-                totalduration += player.duration
+                if entry.duration is None:
+                    entry.duration = 0
+                totalduration += entry.duration
             send += 'Total duration: `[{0}]`'.format(
                 datetime.timedelta(seconds=totalduration))
             out = await self.bot.say(send)

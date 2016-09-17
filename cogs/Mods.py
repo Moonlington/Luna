@@ -12,8 +12,10 @@ def setup(bot):
 
 class Mods:
 
+
     def __init__(self, bot):
         self.bot = bot
+
 
     def findUserseverywhere(self, query):
         mentionregex = "<@!?(\d+)>"
@@ -49,6 +51,7 @@ class Mods:
         if startswith:
             return list(startswith)
         return list(contains)
+
 
     def findUsers(self, query, server):
         mentionregex = "<@!?(\d+)>"
@@ -86,6 +89,7 @@ class Mods:
             return list(startswith)
         return list(contains)
 
+
     @commands.group(pass_context=True, invoke_without_command=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def clear(self, ctx, amount: int):
@@ -95,6 +99,7 @@ class Mods:
         send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
         await asyncio.sleep(3)
         await self.bot.delete_message(send)
+
 
     @clear.command(name="bots", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
@@ -106,7 +111,7 @@ class Mods:
             for mem in m.mentions:
                 if mem.bot:
                     return True
-            if m.content.startswith(tuple(i for i in string.punctuation)):
+            if m.content.startswith(tuple(i for i in string.punctuation)) and not bool(re.search(r'^<@!?(\d+)>', m.content)):
                 return True
             return False
         messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=check)
@@ -114,6 +119,7 @@ class Mods:
         send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
         await asyncio.sleep(3)
         await self.bot.delete_message(send)
+
 
     @clear.command(name="user", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
@@ -140,6 +146,7 @@ class Mods:
             await asyncio.sleep(3)
             await self.bot.delete_message(send)
 
+
     @clear.command(name="images", pass_context=True)
     @checks.mod_or_permissions(manage_messages=True)
     async def _images(self, ctx, amount: int=100):
@@ -151,6 +158,21 @@ class Mods:
             for a in m.attachments:
                 if a['url'].endswith(('.jpg', '.tif', '.gif', '.gifv', '.png', '.raw')):
                     return True
+            return False
+        messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=check)
+        await self.bot.delete_message(ctx.message)
+        send = await self.bot.say("Successfully cleared **{}** messages".format(len(messages)))
+        await asyncio.sleep(3)
+        await self.bot.delete_message(send)
+
+
+    @clear.command(name="regex", pass_context=True)
+    @checks.mod_or_permissions(manage_messages=True)
+    async def _regex(self, ctx, regex, amount: int=100):
+        """Clears using regex."""
+        def check(m):
+            if bool(re.search(regex, m.content)):
+                return True
             return False
         messages = await self.bot.purge_from(ctx.message.channel, limit=amount, before=ctx.message, check=check)
         await self.bot.delete_message(ctx.message)

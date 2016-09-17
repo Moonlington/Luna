@@ -24,9 +24,13 @@ class Searches:
         defs = ud.define(to_define)
         try:
             tosend = '__**' + defs[0].word + ':**__\n'
-            tosend += defs[0].definition + '\n\n'
-            tosend += '**Example:**\n' + defs[0].example
-            await self.bot.say(tosend)
+            tosend += defs[0].definition + ''
+            if defs[0].example:
+                tosend += '\n\n**Example:**\n' + defs[0].example
+            if len(tosend) >= 4000:
+                await self.bot.say("**Error:** Definition is too long to send, Sorry.")
+            else:
+                await self.bot.say(tosend)
         except IndexError:
             await self.bot.say('**Error:** Definition not found')
 
