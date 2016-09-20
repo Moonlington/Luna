@@ -14,7 +14,6 @@ import requests
 import linecache
 import string
 
-
 initial_extensions = [
     'cogs.Funstuff',
     'cogs.Members',
@@ -127,18 +126,20 @@ async def on_resumed():
 bot.convos = {}
 @bot.event
 async def on_message(message):
-    await bot.process_commands(message)
-    cl = bot.convos.get(message.channel.id, [])
-    if not message.author == bot.user and len(message.clean_content) <= 1000 and not message.author.bot:
-        if message.content.startswith(tuple(i for i in string.punctuation)) and not bool(re.search(r'^<@!?(\d+)>', message.content)):
-            pass
-        else:
-            if len(cl) >= 20:
-                bot.chatbot.train(cl)
-                cl = [message.clean_content]
+    if not message.author.bot:
+        await bot.process_commands(message)
+    if bot.chatbot is not None:
+        cl = bot.convos.get(message.channel.id, [])
+        if not message.author == bot.user and len(message.clean_content) <= 1000 and not message.author.bot:
+            if message.content.startswith(tuple(i for i in string.punctuation)) and not bool(re.search(r'^<@!?(\d+)>', message.content)):
+                pass
             else:
-                cl.append(message.clean_content)
-    bot.convos[message.channel.id] = cl
+                if len(cl) >= 20:
+                    bot.chatbot.train(cl)
+                    cl = [message.clean_content]
+                else:
+                    cl.append(message.clean_content)
+        bot.convos[message.channel.id] = cl
 
 
 
@@ -185,7 +186,7 @@ if __name__ == '__main__':
         from chatterbot.trainers import ListTrainer, ChatterBotCorpusTrainer
         bot.chatbot = ChatBot("Luna", database = 'chatterbot', storage_adapter="chatterbot.adapters.storage.MongoDatabaseAdapter")
         bot.chatbot.set_trainer(ListTrainer)
-    except ImportError:
+    except:
         bot.chatbot = None
     bot.run(credentials['token'])
     handlers = log.handlers[:]

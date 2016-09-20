@@ -1491,6 +1491,9 @@ class Funstuff:
 
     @commands.command(pass_context=True)
     async def chat(self, ctx, *, text: str):
-        await self.bot.type()
-        resp = self.bot.chatbot.get_response(text)
-        await self.bot.say(resp.text)
+        if self.bot.chatbot is not None:
+            await self.bot.type()
+            resp = self.bot.chatbot.get_response(text)
+            await self.bot.say(resp.text)
+        else:
+            await self.bot.say("Database is not on, tell **Floretta#7311** to turn it on.")

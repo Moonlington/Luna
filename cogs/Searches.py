@@ -91,11 +91,9 @@ class Searches:
                 '<a.*?>(.*?)</a>', str(soup.find_all('a', attrs={'href': re.compile('/u/*')})))
             text = re.sub('</?em>', '*', text)
             text = re.sub('</?strong>', '**', text)
-            textwrapped = textwrap.wrap(text, 2000)
-            await self.bot.say(
-                'Fanfuck: **{}** by **{}**'.format(re.sub(', a .*? fanfic \| FanFiction', '', soup.title.text), thingy[0]))
-            for piece in textwrapped:
-                await self.bot.say(piece)
-            await self.bot.say('Url: {}'.format(newurl))
+            fmt = 'Fanfuck: **{}** by **{}**\n'.format(re.sub(', a .*? fanfic \| FanFiction', '', soup.title.text), thingy[0])
+            fmt += text + '\n'
+            fmt += 'Url: {}'.format(newurl)
+            await self.bot.say(fmt)
         except ValueError:
             await self.bot.say("Sorry, but no fanfucks were found with the name: **{}**".format(errorthing))
