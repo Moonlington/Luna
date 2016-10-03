@@ -440,7 +440,6 @@ You send a DM to luna with the content '&1'. It's that simple"""))
 
 currentgames = []
 
-
 def setup(bot):
     bot.add_cog(Funstuff(bot))
 
@@ -1159,7 +1158,7 @@ class Funstuff:
     @lsg.command(name='start', pass_context=True)
     async def _start(self, ctx):
         """Initiates a LSG game"""
-        if self.initiating.get(ctx.message.server.id, True):
+        if self.initiating.get(ctx.message.server.id, False):
             await self.bot.say("There's already a LSG initiating, wait until that game is done and then you can make your own")
         else:
             playerlist = [ctx.message.author]

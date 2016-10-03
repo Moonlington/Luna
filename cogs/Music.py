@@ -91,6 +91,7 @@ class VoiceState:
         self.currenttime = None
         self.empty = None
         self.currentplayer = None
+        self.repeat = False
         self.bot = _bot
         self.play_next_song = asyncio.Event()
         self.songs = asyncio.Queue()
@@ -159,11 +160,15 @@ class VoiceState:
             self.play_next_song.clear()
             self.skip_votes.clear()
             self.empty = self.songs.empty()
-            self.current = await self.songs.get()
-            self.songs._queue = self.sortclumps(self.songs._queue, 2, deque())
+            if not self.repeat:
+                self.current = await self.songs.get()
+                self.songs._queue = self.sortclumps(self.songs._queue, 2, deque())
             self.currentplayer = self.create_player(self.current)
             if not self.empty:
-                out = await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                if not self.repeat:
+                    out = await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                else:
+                    out = await self.bot.send_message(self.current.channel, 'Repeating ' + str(self.current))
             self.currenttime = datetime.datetime.now()
             self.currentplayer.start()
             if out:
@@ -303,7 +308,7 @@ class Music:
                 await state.songs.put(entry)
             if weeee:
                 out = await self.bot.say('Successfully enqueued **{}** entries and started playing {}'.format(len(songlist), firstsong))
-                await asyncio.sleep(5)
+                await asyncio.sleep(15)
                 try:
                     await self.bot.delete_messages([ctx.message, out, playlistout])
                 except:
@@ -321,7 +326,7 @@ class Music:
             if not state.is_playing():
                 out = await self.bot.say('Enqueued and now playing ' + str(entry))
                 await state.songs.put(entry)
-                await asyncio.sleep(5)
+                await asyncio.sleep(15)
                 try:
                     await self.bot.delete_messages([ctx.message, out])
                 except:
@@ -521,3 +526,21 @@ Duration: `[{3[0]}m {3[1]}s/{4[0]}m {4[1]}s]`
                 await self.bot.delete_messages([ctx.message, out])
             except:
                 pass
+
+    @music.command(name="repeat", pass_context=True, no_pm=True)
+    async def _repeat(self, ctx):
+        state = self.get_voice_state(ctx.message.server)
+        if state.current is None:
+            out = await self.bot.say('Not playing anything.')
+        else:
+            if not state.repeat:
+                state.repeat = True
+                out = await self.bot.say('Repeating {}'.format(state.current))
+            else:
+                state.repeat = False
+                out = await self.bot.say('Stopped repeating {}, continuing queue'.format(state.current))
+        await asyncio.sleep(10)
+        try:
+            await self.bot.delete_messages([ctx.message, out])
+        except:
+            pass
