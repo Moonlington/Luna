@@ -123,25 +123,6 @@ async def on_ready():
 async def on_resumed():
     print('resumed bot...')
 
-bot.convos = {}
-@bot.event
-async def on_message(message):
-    if not message.author.bot:
-        await bot.process_commands(message)
-    if bot.chatbot is not None:
-        cl = bot.convos.get(message.channel.id, [])
-        if not message.author == bot.user and len(message.clean_content) <= 1000 and not message.author.bot:
-            if message.content.startswith(tuple(i for i in string.punctuation)) and not bool(re.search(r'^<@!?(\d+)>', message.content)):
-                pass
-            else:
-                if len(cl) >= 20:
-                    bot.chatbot.train(cl)
-                    cl = [message.clean_content]
-                else:
-                    cl.append(message.clean_content)
-        bot.convos[message.channel.id] = cl
-
-
 
 @bot.event
 async def on_command(command, ctx):
@@ -181,13 +162,6 @@ if __name__ == '__main__':
             bot.load_extension(extension)
         except:
             PrintException()
-    try:
-        from chatterbot import ChatBot
-        from chatterbot.trainers import ListTrainer, ChatterBotCorpusTrainer
-        bot.chatbot = ChatBot("Luna", database = 'chatterbot', storage_adapter="chatterbot.adapters.storage.MongoDatabaseAdapter")
-        bot.chatbot.set_trainer(ListTrainer)
-    except:
-        bot.chatbot = None
     bot.run(credentials['token'])
     handlers = log.handlers[:]
     for hdlr in handlers:
