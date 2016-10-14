@@ -1493,21 +1493,27 @@ class Funstuff:
             await self.bot.upload(newbytes, filename="Glitch.jpg", content="**Amount:** {}\n**Seed:** {}\n**Iterations:** {}".format(amount, seed, iterations))
 
     @commands.group(pass_context=True, aliases=['rr'], invoke_without_command=True)
-    async def russianroulette(self, ctx, betamount: int, bulletcount: int):
+    async def russianroulette(self, ctx, betamount: str, bulletcount: int):
         """Russian Roulette, cause why not."""
         if ctx.message.author.id in self.rrgroup:
             await self.bot.say("Dont spam it.")
         else:
-            self.rrgroup.append(ctx.message.author.id)
             if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
-                self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+                self.c.execute("INSERT INTO users VALUES (?, 1000, NULL, NULL)", [ctx.message.author.id])
                 uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
             else:
                 uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
 
+            if betamount == "all":
+                betamount = money
+            elif betamount.isdigit():
+                betamount = int(betamount)
+            else:
+                return
+
             if times_died is None:
                 times_died = 0
-
+            self.rrgroup.append(ctx.message.author.id)
             if betamount > money:
                 await self.bot.say("You cant bet more than you have. (You have {} 💵)".format(money))
             elif betamount <= 0:
@@ -1519,6 +1525,11 @@ class Funstuff:
                 await self.bot.say("A revolver only fits **6** bullets, not more.")
             elif bulletcount < 1:
                 await self.bot.say("Why would you want a 100% win chance?")
+
+            elif betamount > 20000 and bulletcount <= 2:
+                await self.bot.say("Sorry but you can't bet over **20k** with less than 3 bullets.")                
+            elif betamount > 2000 and bulletcount == 1:
+                await self.bot.say("Sorry but you can't bet over **2k** with just one bullet.")
             else:
                 m = await self.bot.say("{} shoots with {} bullet{} in the chamber... ({}/6 chance of winning)".format(ctx.message.author.mention, bulletcount, "s" if bulletcount > 1 else "", 6-bulletcount))
                 roll = random.randint(0, 120)
@@ -1534,8 +1545,8 @@ class Funstuff:
                     await asyncio.sleep(random.randint(1,3))
                     send = m.content+"\n\nThere's blood everywhere, but *somehow* you survived. You lost {} 💵 `Left: {} 💵`".format(betamount, newmoney)
                     if newmoney == 0:
-                        send += "\nYou seem to have lost everything. I'll give you 100 💵."
-                        self.c.execute("UPDATE users SET money = ?, times_died = ? WHERE user_id = ?", [100, times_died+1, uid])
+                        send += "\nYou seem to have lost everything. I'll give you 1000 💵."
+                        self.c.execute("UPDATE users SET money = ?, times_died = ? WHERE user_id = ?", [1000, times_died+1, uid])
                     else:
                         self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
                     await self.bot.edit_message(m, send)
@@ -1556,9 +1567,9 @@ class Funstuff:
     @russianroulette.command(pass_context=True, aliases=["lb"])
     async def leaderboard(self, ctx):
         """Shows the global leaderboard"""
-        data = self.c.execute("SELECT user_id, money FROM users ORDER BY money DESC LIMIT 10").fetchall()
-        send = "__Current Russian Roulette leaderboard__\n"
-        for uid, money in data:
+        data = self.c.execute("SELECT user_id, money, times_died FROM users ORDER BY money DESC LIMIT 10").fetchall()
+        send = "__Current Russian Roulette leaderboard (R = Restarts)__\n"
+        for uid, money, td in data:
             username = self.lookupid(uid).name
-            send += "{} - **{}** 💵\n".format(username, money)
+            send += "{} - **{}** 💵 (R: {})\n".format(username, money, td)
         await self.bot.say(send)
