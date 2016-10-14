@@ -13,7 +13,10 @@ import re
 import asyncio
 import textblob
 import aiohttp
+import sqlite3
 from PIL import Image, ImageDraw, ImageFont
+
+conn = sqlite3.connect('data.db')
 
 if not os.path.exists('discord.tags'):
     open('discord.tags', 'w').close()
@@ -447,10 +450,11 @@ def setup(bot):
 class Funstuff:
 
     def __init__(self, bot):
+        self.c = conn.cursor()
         self.bot = bot
         self.initiating = {}
         self.call_lines = {}
-
+        self.rrgroup = []
     def findUserseverywhere(self, query):
         mentionregex = "<@!?(\d+)>"
         userid = ''
@@ -1487,3 +1491,74 @@ class Funstuff:
                 data = nstream.getvalue()
             newbytes = BytesIO(Glitchjpeg(data, amount, seed, iterations).new_bytes)
             await self.bot.upload(newbytes, filename="Glitch.jpg", content="**Amount:** {}\n**Seed:** {}\n**Iterations:** {}".format(amount, seed, iterations))
+
+    @commands.group(pass_context=True, aliases=['rr'], invoke_without_command=True)
+    async def russianroulette(self, ctx, betamount: int, bulletcount: int):
+        """Russian Roulette, cause why not."""
+        if ctx.message.author.id in self.rrgroup:
+            await self.bot.say("Dont spam it.")
+        else:
+            self.rrgroup.append(ctx.message.author.id)
+            if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
+                self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+                uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+            else:
+                uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+
+            if times_died is None:
+                times_died = 0
+
+            if betamount > money:
+                await self.bot.say("You cant bet more than you have. (You have {} 💵)".format(money))
+            elif betamount <= 0:
+                await self.bot.say("You cant bet negative or no money.")
+
+            elif bulletcount == 6:
+                await self.bot.say("Do you want to kill yourself? You know a revolver only fits **6** bullets, right?")
+            elif bulletcount > 6:
+                await self.bot.say("A revolver only fits **6** bullets, not more.")
+            elif bulletcount < 1:
+                await self.bot.say("Why would you want a 100% win chance?")
+            else:
+                m = await self.bot.say("{} shoots with {} bullet{} in the chamber... ({}/6 chance of winning)".format(ctx.message.author.mention, bulletcount, "s" if bulletcount > 1 else "", 6-bulletcount))
+                roll = random.randint(0, 120)
+                if roll >= 20 * bulletcount:
+                    mon_mul = 6/(6-bulletcount)
+                    newmoney = money - betamount + int(betamount*mon_mul)
+                    await asyncio.sleep(2)
+                    await self.bot.edit_message(m, m.content+"\n\nYou hear it click. You gained {} 💵 ({}*{}) `Total: {} 💵`".format(int(betamount*mon_mul), betamount, mon_mul, newmoney))
+                    self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
+
+                else:
+                    newmoney = money - betamount
+                    await asyncio.sleep(random.randint(1,3))
+                    send = m.content+"\n\nThere's blood everywhere, but *somehow* you survived. You lost {} 💵 `Left: {} 💵`".format(betamount, newmoney)
+                    if newmoney == 0:
+                        send += "\nYou seem to have lost everything. I'll give you 100 💵."
+                        self.c.execute("UPDATE users SET money = ?, times_died = ? WHERE user_id = ?", [100, times_died+1, uid])
+                    else:
+                        self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
+                    await self.bot.edit_message(m, send)
+            conn.commit()
+            self.rrgroup.remove(ctx.message.author.id)
+
+    @russianroulette.command(pass_context=True, name="money")
+    async def _money(self, ctx):
+        """Tells how much money you have"""
+        if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
+            self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+        else:
+            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+
+        await self.bot.say("You have **{}** 💵".format(money[0]))
+
+    @russianroulette.command(pass_context=True, aliases=["lb"])
+    async def leaderboard(self, ctx):
+        """Shows the global leaderboard"""
+        data = self.c.execute("SELECT user_id, money FROM users ORDER BY money DESC LIMIT 10").fetchall()
+        send = "__Current Russian Roulette leaderboard__\n"
+        for uid, money in data:
+            username = self.lookupid(uid).name
+            send += "{} - **{}** 💵\n".format(username, money)
+        await self.bot.say(send)

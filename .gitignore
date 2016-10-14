@@ -3,3 +3,5 @@
 *.tags
 __pycache__
 *.google-cookie
+*.db
+*.bat
