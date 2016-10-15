@@ -16,7 +16,7 @@ import string
 
 initial_extensions = [
     'cogs.Funstuff',
-    'cogs.Members',
+    'cogs.Gambling',
     'cogs.Music',
     'cogs.Searches',
     'cogs.Botrelated',
