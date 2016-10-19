@@ -81,7 +81,7 @@ Uptime: {1}
 Visible Servers: {2}
 Visible Channels: {3}
 Visible Users: {4}'''
-        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id='139386544275324928')))
+        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id=os.environ.get('LUNA_OWNERID', ''))))
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
