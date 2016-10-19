@@ -34,26 +34,23 @@ def moneyparser(money):
     return nmoney
 
 def moneyunparser(money):
-    money = str(money)
+    money = str(money).lower()
     nmoney = ""
-    if money.endswith("B"):
-        nmoney = money + "000000000"
-    elif money.endswith("M"):
-        nmoney = money + "000000"
-    elif money.endswith("K"):
-        nmoney = money + "000"
+    if money.isdigit():
+        return int(money)
+    else:
+        if not money[:-1].isdigit():
+            return
+    if money.endswith("b"):
+        nmoney = money[:-1] + "000000000"
+    elif money.endswith("m"):
+        nmoney = money[:-1] + "000000"
+    elif money.endswith("k"):
+        nmoney = money[:-1] + "000"
     else:
         nmoney = money
 
-    if int(money) > 1000000000:
-        nmoney += " 💴"
-    elif int(money) > 1000000: 
-        nmoney += " 💷"
-    elif int(money) > 1000:
-        nmoney += " 💰"
-    else:
-        nmoney += " 💵"
-    return nmoney
+    return int(nmoney)
 
 class Gambling:
 
@@ -154,7 +151,9 @@ class Gambling:
             elif betamount.isdigit():
                 betamount = int(betamount)
             else:
-                return
+                betamount = moneyunparser(betamount)
+                if betamount is None:
+                    return
 
             if times_died is None:
                 times_died = 0
@@ -222,8 +221,9 @@ class Gambling:
 
     @russianroulette.command(pass_context=True)
     @checks.is_owner()
-    async def award(self, ctx, amount: int, *, name: str):
+    async def award(self, ctx, amount: str, *, name: str):
         """Gives away free money, only the bot owner can use this."""
+        amount = moneyunparser(amount)
         users = None
         if ctx.message.server is not None:
             users = self.findUsers(name, ctx.message.server)
@@ -248,11 +248,12 @@ class Gambling:
         else:
             money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
         self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
-        await self.bot.say("Awarded {} **{}** 💵".format(person.name, moneyparser(amount)))
+        await self.bot.say("Awarded {} **{}**".format(person.name, moneyparser(amount)))
     
     @russianroulette.command(pass_context=True)
-    async def give(self, ctx, amount: int, *, name: str):
+    async def give(self, ctx, amount: str, *, name: str):
         """Gives money to someone else."""
+        amount = moneyunparser(amount)
         users = None
         if ctx.message.server is not None:
             users = self.findUsers(name, ctx.message.server)
@@ -291,5 +292,5 @@ class Gambling:
                 money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
             self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
 
-            await self.bot.say("{} gave {} **{}** 💵".format(ctx.message.author.name, person.name, moneyparser(amount)))
+            await self.bot.say("{} gave {} **{}**".format(ctx.message.author.name, person.name, moneyparser(amount)))
         
