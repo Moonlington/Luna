@@ -17,7 +17,7 @@ from discord.ext import commands
 
 initial_extensions = [
     'cogs.Funstuff',
-    'cogs.Gambling',
+    # 'cogs.Gambling',
     'cogs.Music',
     'cogs.Searches',
     'cogs.Botrelated',
