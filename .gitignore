@@ -1,4 +1,4 @@
-*.json
+*.env
 *.log
 *.tags
 __pycache__

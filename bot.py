@@ -155,15 +155,14 @@ def PrintException():
 
 
 if __name__ == '__main__':
-    credentials = load_credentials()
-    bot.bot_id = credentials['client_id']
+    bot.bot_id = os.environ.get('LUNA_CLIENTID','')
     bot.starttime = datetime.datetime.now()
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)
         except:
             PrintException()
-    bot.run(credentials['token'])
+    bot.run(os.environ.get('LUNA_TOKEN',''))
     handlers = log.handlers[:]
     for hdlr in handlers:
         hdlr.close()
