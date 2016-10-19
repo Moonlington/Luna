@@ -3,7 +3,7 @@ import discord.utils
 
 
 def is_owner_check(message):
-    return message.author.id == '139386544275324928'
+    return message.author.id == os.environ.get('LUNA_OWNERID', '')
 
 
 def is_owner():

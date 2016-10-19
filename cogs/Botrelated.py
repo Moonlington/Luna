@@ -74,14 +74,14 @@ class Botrelated:
             scounter += 1
         fmt = '''**About me**
 Name: {0.name} (ID: {0.id})
-Author: {5} (ID: 139386544275324928)
+Author: {5.name} (ID: {5.id})
 Language: Snek language (python)\n
 **Statistics**
 Uptime: {1}
 Visible Servers: {2}
 Visible Channels: {3}
 Visible Users: {4}'''
-        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id='139386544275324928').name))
+        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id='139386544275324928')))
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()
