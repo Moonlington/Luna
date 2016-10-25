@@ -993,7 +993,7 @@ class Funstuff:
                     await self.bot.say("__**{}** tags found containing **{}**:__\n{}".format(len(listoftags), search, " ".join(listoftags)))
 
     @tag.command(name='override', pass_context=True)
-    @checks.mod_or_permissions()
+    @checks.admin_or_permissions(administrator=True)
     async def _override(self, ctx, name, *, content=None):
         async def edittag(name, content):
             f = open("overrides.tags", "rb+")

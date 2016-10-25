@@ -6,7 +6,6 @@ import asyncio
 import re
 import sqlite3
 
-conn = sqlite3.connect('data.db', isolation_level = None)
 
 def setup(bot):
     bot.add_cog(Gambling(bot))
@@ -14,7 +13,11 @@ def setup(bot):
 def moneyparser(money):
     money = str(money)
     nmoney = ""
-    if money.endswith("000000000"):
+    if money.endswith("000000000000000"):
+        nmoney = money[:-15] + "Q"
+    elif money.endswith("000000000000"):
+        nmoney = money[:-12] + "T"
+    elif money.endswith("000000000"):
         nmoney = money[:-9] + "B"
     elif money.endswith("000000"):
         nmoney = money[:-6] + "M"
@@ -41,7 +44,11 @@ def moneyunparser(money):
     else:
         if not money[:-1].isdigit():
             return
-    if money.endswith("b"):
+    if money.endswith("q"):
+        nmoney = money[:-1] + "000000000000000"
+    elif money.endswith("t"):
+        nmoney = money[:-1] + "000000000000"
+    elif money.endswith("b"):
         nmoney = money[:-1] + "000000000"
     elif money.endswith("m"):
         nmoney = money[:-1] + "000000"
@@ -55,9 +62,10 @@ def moneyunparser(money):
 class Gambling:
 
     def __init__(self, bot):
+        self.conn = sqlite3.connect('data.db', isolation_level = None)
         self.bot = bot
         self.rrgroup = []
-        self.c = conn.cursor()
+        self.bot.c = self.conn.cursor()
 
     def findUserseverywhere(self, query):
         mentionregex = "<@!?(\d+)>"
@@ -140,11 +148,11 @@ class Gambling:
         if ctx.message.author.id in self.rrgroup:
             await self.bot.say("Dont spam it.")
         else:
-            if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
-                self.c.execute("INSERT INTO users VALUES (?, 1000, NULL, NULL)", [ctx.message.author.id])
-                uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+            if self.bot.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
+                self.bot.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+                uid, money, times_died = self.bot.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
             else:
-                uid, money, times_died = self.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+                uid, money, times_died = self.bot.c.execute("SELECT user_id, money, times_died FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
 
             if betamount == "all":
                 betamount = money
@@ -182,7 +190,7 @@ class Gambling:
                     newmoney = money - betamount + int(betamount*mon_mul)
                     await asyncio.sleep(2)
                     await self.bot.edit_message(m, m.content+"\n\nYou hear it click. You gained {} ({}*{}) `Total: {}`".format(int(betamount*mon_mul), moneyparser(betamount), mon_mul, moneyparser(newmoney)))
-                    self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
+                    self.bot.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
 
                 else:
                     newmoney = money - betamount
@@ -190,9 +198,9 @@ class Gambling:
                     send = m.content+"\n\nThere's blood everywhere, but *somehow* you survived. You lost {} `Left: {}`".format(moneyparser(betamount), moneyparser(newmoney))
                     if newmoney == 0:
                         send += "\nYou seem to have lost everything. I'm not going to give you money, find someone to give you money."
-                        self.c.execute("UPDATE users SET money = ?, times_died = ? WHERE user_id = ?", [newmoney, times_died+1, uid])
+                        self.bot.c.execute("UPDATE users SET money = ?, times_died = ? WHERE user_id = ?", [newmoney, times_died+1, uid])
                     else:
-                        self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
+                        self.bot.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [newmoney, uid])
                     await self.bot.edit_message(m, send)
             
             self.rrgroup.remove(ctx.message.author.id)
@@ -201,18 +209,18 @@ class Gambling:
     @russianroulette.command(pass_context=True, name="money")
     async def _money(self, ctx):
         """Tells how much money you have"""
-        if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
-            self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+        if self.bot.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
+            self.bot.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
         else:
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
 
         await self.bot.say("You have **{}**".format(moneyparser(money[0])))
 
     @russianroulette.command(pass_context=True, aliases=["lb"])
     async def leaderboard(self, ctx):
         """Shows the global leaderboard"""
-        data = self.c.execute("SELECT user_id, money, times_died FROM users ORDER BY money DESC LIMIT 10").fetchall()
+        data = self.bot.c.execute("SELECT user_id, money, times_died FROM users ORDER BY money DESC LIMIT 10").fetchall()
         send = "__Current Russian Roulette leaderboard (R = Restarts)__\n"
         for uid, money, td in data:
             username = self.lookupid(uid).name
@@ -242,12 +250,12 @@ class Gambling:
             return
         person = users[0]
         personid = person.id
-        if self.c.execute("SELECT * FROM users WHERE user_id = ?", [personid]).fetchone() is None:
-            self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [personid])
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
+        if self.bot.c.execute("SELECT * FROM users WHERE user_id = ?", [personid]).fetchone() is None:
+            self.bot.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [personid])
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
         else:
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
-        self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
+        self.bot.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
         await self.bot.say("Awarded {} **{}**".format(person.name, moneyparser(amount)))
     
     @russianroulette.command(pass_context=True)
@@ -273,24 +281,24 @@ class Gambling:
         person = users[0]
         personid = person.id
 
-        if self.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
-            self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+        if self.bot.c.execute("SELECT * FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone() is None:
+            self.bot.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [ctx.message.author.id])
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
         else:
-            money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
+            money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
         if amount > money[0]:
             await self.bot.say("You cant give more than you have. (You have {})".format(moneyparser(money[0])))
         elif amount <= 0:
             await self.bot.say("You cant give negative or no money.")
         else:
-            self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] - amount, ctx.message.author.id])
+            self.bot.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] - amount, ctx.message.author.id])
 
-            if self.c.execute("SELECT * FROM users WHERE user_id = ?", [personid]).fetchone() is None:
-                self.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [personid])
-                money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
+            if self.bot.c.execute("SELECT * FROM users WHERE user_id = ?", [personid]).fetchone() is None:
+                self.bot.c.execute("INSERT INTO users VALUES (?, 100, NULL, NULL)", [personid])
+                money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
             else:
-                money = self.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
-            self.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
+                money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [personid]).fetchone()
+            self.bot.c.execute("UPDATE users SET money = ? WHERE user_id = ?", [money[0] + amount, personid])
 
             await self.bot.say("{} gave {} **{}**".format(ctx.message.author.name, person.name, moneyparser(amount)))
         
