@@ -1371,6 +1371,7 @@ class Funstuff:
             location = geolocator.geocode(loc)
 
             req = requests.get('https://api.darksky.net/forecast/entercancerapikeyhere/{},{}'.format(location.latitude,location.longitude))
+            # https://darksky.net/dev/register for api
             data = req.text
             parsed = json.loads(data)
 
