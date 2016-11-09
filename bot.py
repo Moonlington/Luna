@@ -138,7 +138,7 @@ async def on_command(command, ctx):
 
 
 def load_credentials():
-    with open('credentials.json') as f:
+    with open('config.json') as f:
         return json.load(f)
 
 

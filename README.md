@@ -20,8 +20,9 @@ First make a file called `credentials.json`, where you enter your bot account's 
 
 ```JSON
 {
-    "token": "your bot token",
-    "client_id": "your client_id",
+    "token": "Bot token",
+    "ownerid": "The owners id",
+    "prefix": "Its prefix"
 }
 ```
 
