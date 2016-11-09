@@ -15,6 +15,7 @@ import textblob
 import aiohttp
 from geopy.geocoders import Nominatim
 import json
+import requests
 from PIL import Image, ImageDraw, ImageFont
 
 if not os.path.exists('discord.tags'):
