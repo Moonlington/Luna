@@ -1,9 +1,15 @@
 from discord.ext import commands
 import discord.utils
+import json
 
+def load_credentials():
+    with open('credentials.json') as f:
+        return json.load(f)
+
+cred = load_credentials()
 
 def is_owner_check(message):
-    return message.author.id == '139386544275324928'
+    return message.author.id == cred['ownerid']
 
 
 def is_owner():

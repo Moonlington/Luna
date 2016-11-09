@@ -215,7 +215,7 @@ class Gambling:
         else:
             money = self.bot.c.execute("SELECT money FROM users WHERE user_id = ?", [ctx.message.author.id]).fetchone()
 
-        await self.bot.say("You have **{}**".format(moneyparser(money[0])))
+        await self.bot.reply("You have **{}**".format(moneyparser(money[0])))
 
     @russianroulette.command(pass_context=True, aliases=["lb"])
     async def leaderboard(self, ctx):
@@ -223,7 +223,8 @@ class Gambling:
         data = self.bot.c.execute("SELECT user_id, money, times_died FROM users ORDER BY money DESC LIMIT 10").fetchall()
         send = "__Current Russian Roulette leaderboard (R = Restarts)__\n"
         for uid, money, td in data:
-            username = self.lookupid(uid).name
+            user = self.lookupid(uid)
+            username = user.name if user is not None else uid
             send += "{} - **{}** (R: {})\n".format(username, moneyparser(money), td)
         await self.bot.say(send)
 

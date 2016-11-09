@@ -57,7 +57,7 @@ class Botrelated:
         """Sends an invite link for you to invite me to your personal server."""
         await self.bot.say(
             'E-excuse me senpai, if you want me on your server, simply click this l-link and select a server where you have t-the "Manage server" role...\n'
-            'https://discordapp.com/oauth2/authorize?&client_id={}&scope=bot&permissions=-1\n'.format(self.bot.bot_id))
+            'https://discordapp.com/oauth2/authorize?&client_id={}&scope=bot&permissions=1072819255\n'.format(self.bot.bot_id))
 
     @commands.command()
     async def botabout(self):
@@ -74,14 +74,14 @@ class Botrelated:
             scounter += 1
         fmt = '''**About me**
 Name: {0.name} (ID: {0.id})
-Author: {5} (ID: 139386544275324928)
+Author: {5.name} (ID: {5.id})
 Language: Snek language (python)\n
 **Statistics**
 Uptime: {1}
 Visible Servers: {2}
 Visible Channels: {3}
 Visible Users: {4}'''
-        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id='139386544275324928').name))
+        await self.bot.say(fmt.format(self.bot.user, uptime, scounter, ccounter, ucounter, discord.utils.get(self.bot.get_all_members(), id=self.bot.ownerid)))
 
     @commands.command(hidden=True, pass_context=True)
     @checks.is_owner()

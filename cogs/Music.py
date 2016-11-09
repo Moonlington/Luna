@@ -31,6 +31,7 @@ class VoiceEntry:
         self.title = None
         self.description = None
         self.upload_date = None
+        self.doit = True
 
     async def getInfo(self):
         opts = {
@@ -52,6 +53,8 @@ class VoiceEntry:
             self.likes = info.get('like_count')
             self.dislikes = info.get('dislike_count')
             self.duration = info.get('duration')
+            if self.duration is None:
+                self.duration = 0
             self.uploader = info.get('uploader')
 
             is_twitch = 'twitch' in self.url
@@ -71,7 +74,10 @@ class VoiceEntry:
 
             self.upload_date = date
         except TypeError:
-            await self.bot.say('YouTube said: **This video is not available.**')
+            self.doit = False
+            out = await self.bot.say('Something went wrong with gathering the info.')
+            await asyncio.sleep(5)
+            await self.bot.delete_message(out)
 
     def __str__(self):
         fmt = '**{0.title}** uploaded by **{0.uploader}** and requested by **{1.display_name}**'
@@ -167,7 +173,8 @@ class VoiceState:
             self.currentplayer = self.create_player(self.current)
             if not self.empty:
                 if not self.repeat:
-                    out = await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                    await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                    out = None
                 else:
                     out = await self.bot.send_message(self.current.channel, 'Repeating ' + str(self.current))
             self.currenttime = datetime.datetime.now()
@@ -175,7 +182,8 @@ class VoiceState:
             if out:
                 try:
                     await asyncio.sleep(15)
-                    await self.bot.delete_message(out)
+                    if out is not None:
+                        await self.bot.delete_message(out)
                 except:
                     pass
             await self.play_next_song.wait()
@@ -304,14 +312,20 @@ class Music:
             for video in songlist:
                 entry = VoiceEntry(self.bot, ctx.message, video)
                 await entry.getInfo()
+                if not entry.doit:
+                    continue
                 if songlist.index(video) == 0:
                     firstsong = entry
                 await state.songs.put(entry)
             if weeee:
-                out = await self.bot.say('Successfully enqueued **{}** entries and started playing {}'.format(len(songlist), firstsong))
+                await self.bot.say('Successfully enqueued **{}** entries and started playing {}'.format(len(songlist), firstsong))
+                out = None
                 await asyncio.sleep(15)
                 try:
-                    await self.bot.delete_messages([ctx.message, out, playlistout])
+                    if out is not None:
+                        await self.bot.delete_messages([ctx.message, out, playlistout])
+                    else:
+                        await self.bot.delete_messages([ctx.message, playlistout])
                 except:
                     pass
             else:
@@ -324,22 +338,29 @@ class Music:
         else:
             entry = VoiceEntry(self.bot, ctx.message, song)
             await entry.getInfo()
-            if not state.is_playing():
-                out = await self.bot.say('Enqueued and now playing ' + str(entry))
-                await state.songs.put(entry)
-                await asyncio.sleep(15)
-                try:
-                    await self.bot.delete_messages([ctx.message, out])
-                except:
-                    pass
+            if entry.doit:
+                if not state.is_playing():
+                    await self.bot.say('Enqueued and now playing ' + str(entry))
+                    out = None
+                    await state.songs.put(entry)
+                    await asyncio.sleep(15)
+                    try:
+                        if out is not None:
+                            await self.bot.delete_messages([ctx.message, out])
+                        else:
+                            await self.bot.delete_message(ctx.message)
+                    except:
+                        pass
+                else:
+                    out = await self.bot.say('Enqueued ' + str(entry))
+                    await state.songs.put(entry)
+                    await asyncio.sleep(5)
+                    try:
+                        await self.bot.delete_messages([ctx.message, out])
+                    except:
+                        pass
             else:
-                out = await self.bot.say('Enqueued ' + str(entry))
-                await state.songs.put(entry)
-                await asyncio.sleep(5)
-                try:
-                    await self.bot.delete_messages([ctx.message, out])
-                except:
-                    pass
+                await self.bot.delete_message(ctx.message)
 
     @music.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value: int):
@@ -410,6 +431,15 @@ class Music:
         voter = ctx.message.author
         if voter == state.current.requester:
             out = await self.bot.say('Requester requested skipping song...')
+            state.skip()
+            await asyncio.sleep(5)
+            try:
+                await self.bot.delete_messages([ctx.message, out])
+            except:
+                pass
+
+        elif voter.id == self.bot.ownerid:
+            out = await self.bot.say('Bot owner requested skipping song...')
             state.skip()
             await asyncio.sleep(5)
             try:

@@ -32,9 +32,8 @@ log.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='luna.log', encoding='utf-8', mode='w')
 log.addHandler(handler)
 
-prefix = ['&']
 
-bot = commands.Bot(command_prefix=prefix, description=botdesc, pm_help=None)
+bot = commands.Bot(command_prefix="PLACEHOLDER", description=botdesc, pm_help=None)
 
 bot.oldsay = bot.say
 
@@ -86,6 +85,7 @@ async def on_ready():
     print('In servers:')
     print("\n".join(s.name for s in bot.servers if s.name))
     print('--------------')
+    bot.bot_id = (await bot.application_info()).id
     if sys.platform == "win32":
         if os.path.exists(os.path.join(os.getcwd(), "libopus.dll")):
             found = "libopus"
@@ -155,8 +155,9 @@ def PrintException():
 
 if __name__ == '__main__':
     credentials = load_credentials()
-    bot.bot_id = credentials['client_id']
     bot.starttime = datetime.datetime.now()
+    bot.command_prefix = credentials['prefix']
+    bot.ownerid = credentials['ownerid']
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)

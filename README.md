@@ -28,4 +28,4 @@ First make a file called `credentials.json`, where you enter your bot account's 
 After this you edit `cogs/utils/checks.py` with **YOUR** ID.
 
 ## Stuff you need
-A lot of stuff. I really need to shorten it or make a list.
+See `requirements.txt`

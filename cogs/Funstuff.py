@@ -1295,26 +1295,7 @@ class Funstuff:
     async def choose(self, *choices: str):
         """Chooses between multiple choices."""
         await self.bot.say(random.choice(choices))
-
-    @commands.command()
-    async def translate(self, language, *, text):
-        """Translates text
-        Usage: fromlang>tolang <text>
-        for languagecodes, see https://cloud.google.com/translate/v2/translate-reference#supported_languages"""
-        lang1, lang2 = language.split('>')
-        if lang1 == '':
-            yee = False
-        else:
-            yee = True
-        try:
-            if yee:
-                translated = TextBlob(text).translate(
-                    from_lang=lang1, to=lang2)
-            else:
-                translated = TextBlob(text).translate(to=lang2)
-        except textblob.exceptions.NotTranslated:
-            translated = text
-        await self.bot.say(translated)
+        
 
     @commands.group(pass_context=True)
     async def call(self, ctx):
