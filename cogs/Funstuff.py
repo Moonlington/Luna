@@ -13,6 +13,9 @@ import re
 import asyncio
 import textblob
 import aiohttp
+from geopy.geocoders import Nominatim
+import json
+import requests
 from PIL import Image, ImageDraw, ImageFont
 
 if not os.path.exists('discord.tags'):
@@ -1361,6 +1364,32 @@ class Funstuff:
         buf.close()
         plt.close()
 
+    @commands.command(name='weather')
+    async def weather(self, *, loc):
+        try:
+            geolocator = Nominatim()
+            location = geolocator.geocode(loc)
+
+            req = requests.get('https://api.darksky.net/forecast/entercancerapikeyhere/{},{}'.format(location.latitude,location.longitude))
+            # https://darksky.net/dev/register for api
+            data = req.text
+            parsed = json.loads(data)
+
+            textdata = ':eggplant: **{}** (timezone)\n'.format(parsed['timezone'])
+            textdata += ':eggplant: **{}** (location)\n'.format(location.address)
+            textdata += ':sunny: **{}** (summary)\n'.format(parsed['currently']['summary'])
+            fahrenheit = parsed['currently']['temperature']
+            celsius = str((fahrenheit - 32) * 5.0/9.0)[:4]
+            textdata += ':level_slider: **{}{}** | **{}{}** (temperature)\n'.format(fahrenheit, b'\xc2\xb0F'.decode(), celsius, b'\xc2\xb0C'.decode())
+            textdata += ':eyes: **{}%** (humidity)\n'.format(parsed['currently']['humidity'])
+            textdata += ':lock: __Powered by **Dark Sky**__'
+
+            await self.bot.say(textdata)
+        except Exception as e:
+            await self.bot.say('this cancerous bot might have errors or its because of your autism :ok_hand::skin-tone-5:\n{}'.format(e))
+
+
+        
     @commands.command(pass_context=True)
     async def cats(self, ctx):
         async with aiohttp.get('http://random.cat/meow') as r:
