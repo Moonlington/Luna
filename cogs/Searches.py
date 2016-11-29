@@ -3,10 +3,14 @@ from discord.ext import commands
 import urbandictionary as ud
 import re
 import random
+import aiohttp
 import google
 import urllib.request as request
+from io import BytesIO
 from bs4 import BeautifulSoup as bs
 
+google_api = []
+api_count = 0
 
 def setup(bot):
     bot.add_cog(Searches(bot))
@@ -97,3 +101,16 @@ class Searches:
             await self.bot.say(fmt)
         except ValueError:
             await self.bot.say("Sorry, but no fanfucks were found with the name: **{}**".format(errorthing))
+
+    # @commands.command(pass_context=True, aliases=['im', 'photo', 'img'])
+    # async def image(self, ctx, *, text:str):
+    #     requrl = "https://api.cognitive.microsoft.com/bing/v5.0/images/search?q={}".format(text)
+    #     res = await aiohttp.get(requrl, headers={"Ocp-Apim-Subscription-Key": "c84ce598f43143bbb35031a134d7ddd1"})
+    #     strem = await res.json()
+    #     print(strem)
+    #     images = strem["value"]
+    #     randimg = random.choice(images)
+    #     async with aiohttp.get(randimg["contentUrl"]) as r:
+    #         data = await r.read()
+    #         img = BytesIO(data)
+    #     await self.bot.upload(img)

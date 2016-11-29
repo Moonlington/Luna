@@ -223,13 +223,7 @@ class Music:
         aliases=['lm', "Im"])
     async def music(self, ctx):
         """Music commands for Luna."""
-        if ctx.invoked_subcommand is None:
-            out = await self.bot.say('Use `&help music` or `&help lm` to see the subcommands.')
-            await asyncio.sleep(5)
-            try:
-                await self.bot.delete_messages([ctx.message, out])
-            except:
-                pass
+        pass
 
     @music.command(no_pm=True)
     async def join(self, *, channel: discord.Channel):
