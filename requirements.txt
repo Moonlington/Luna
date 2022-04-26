@@ -5,7 +5,7 @@ requests==2.20.0
 textblob==0.11.1
 urbandictionary==1.1
 youtube_dl==2016.6.23.1
-Pillow==9.0.0
+Pillow==9.0.1
 beautifulsoup4==4.5.1
 cogs==0.4.1
 protobuf==3.1.0.post1
